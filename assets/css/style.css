@@ -123,7 +123,7 @@ body.menu-open .burger .i-x{opacity:1;transform:none}
   .mmenu a{font-family:var(--f-display);font-size:clamp(2rem,9vw,2.8rem);font-weight:300;padding:.2em 0;color:var(--ink-2);opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .6s var(--ease),color .3s}
   .mmenu a[aria-current]{color:var(--ink)}
   body.menu-open .mmenu a{opacity:1;transform:none;transition-delay:calc(.05s + var(--i)*.05s)}
-  .mmenu .theme-switch{margin-top:28px;opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .6s var(--ease)}
+  .mmenu .theme-switch{align-self:center;margin-bottom:20px;opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .6s var(--ease)}
   body.menu-open .mmenu .theme-switch{opacity:1;transform:none;transition-delay:calc(.05s + var(--i)*.05s)}
 }
 

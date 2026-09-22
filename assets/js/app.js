@@ -156,8 +156,8 @@ function renderChrome(){
     <nav class="links" aria-label="Main">${NAV.map(([p,l])=>`<a href="${href(p)}" data-page="${p}">${l}</a>`).join('')}</nav>
     <div class="ctl"><button class="theme-switch" data-act="theme" role="switch" aria-checked="false" aria-label="Dark mode"><span class="ts-knob"></span>${ico('sun','i-sun')}${ico('moon','i-moon')}</button>
     <button class="icon-btn burger" data-act="menu" aria-label="Open menu" aria-expanded="false">${ico('menu','i-m')}${ico('close','i-x')}</button></div></div>`;
-  $('#mmenu').innerHTML=NAV.map(([p,l],i)=>`<a href="${href(p)}" data-page="${p}" style="--i:${i}">${l}</a>`).join('')
-    +`<button class="theme-switch" data-act="theme" role="switch" aria-checked="false" aria-label="Dark mode" style="--i:${NAV.length}"><span class="ts-knob"></span>${ico('sun','i-sun')}${ico('moon','i-moon')}</button>`;
+  $('#mmenu').innerHTML=`<button class="theme-switch" data-act="theme" role="switch" aria-checked="false" aria-label="Dark mode" style="--i:0"><span class="ts-knob"></span>${ico('sun','i-sun')}${ico('moon','i-moon')}</button>`
+    +NAV.map(([p,l],i)=>`<a href="${href(p)}" data-page="${p}" style="--i:${i+1}">${l}</a>`).join('');
   const cmn=new Date().getMonth(),inS=state.products.filter(p=>{const m=seasonMask(p.season);return m&&m[cmn]}).map(p=>esc(p.name));
   let seas='';
   if(inS.length){let g=inS.slice();while(g.length<6)g=g.concat(inS);const one=g.map(n=>`<span>${n}</span><i class="fs-sep"></i>`).join('');seas=`<div class="ft-strip"><div class="wrap"><a class="ft-season" href="#/products"><span class="fs-l"><i class="fs-dot"></i>In season now</span><span class="fs-m"><span class="fs-t">${one}${one}</span></span></a></div></div>`}
