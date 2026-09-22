@@ -1,0 +1,26 @@
+ATLANTIK GARDEN HOLDING - PHOTO LIST
+Put your photos in these exact file names (JPG, ideally 80-250 KB each). Missing photos fall back to a quiet placeholder.
+
+HOME
+  assets/img/hero-1.jpg      1920x1080 landscape  - wide field / orchard at golden hour (main cover)
+  assets/img/hero-2.jpg      1920x1080 landscape  - harvest in progress
+  assets/img/hero-3.jpg      1920x1080 landscape  - packing hall or cold store
+  assets/img/story.jpg       1920x1000 landscape  - rows of crops, aerial or low sun
+ABOUT
+  assets/img/about.jpg       1000x1250 portrait   - team or the agent's office / warehouse
+PRODUCTS (portrait 4:5, 1000x1250, product centred, clean light)
+  assets/img/products/p-oil.jpg       assets/img/products/p-olives.jpg
+  assets/img/products/p-almonds.jpg   assets/img/products/p-pom.jpg
+  assets/img/products/p-pist.jpg      assets/img/products/p-wheat.jpg
+  assets/img/products/p-tomato.jpg    assets/img/products/p-mint.jpg
+  assets/img/products/p-orange.jpg    assets/img/products/p-dates.jpg
+FACTORIES (landscape 16:8, 1600x800)
+  assets/img/factories/f-es.jpg   assets/img/factories/f-tr.jpg
+  assets/img/factories/f-ku.jpg   assets/img/factories/f-eg.jpg
+
+Products or factories you add later in the dashboard: upload the photo in the form (preview only),
+or save it as assets/img/products/<id>.jpg / assets/img/factories/<id>.jpg.
+
+Best photos: your own (real factories, real fields, real packaging). Otherwise free-licence stock
+from Unsplash or Pexels - search e.g. "olive grove", "orange orchard", "wheat field sunrise",
+"date palm harvest", "pistachio", "pomegranate", "vine tomatoes", "fresh mint", "packing house", "greenhouse".
