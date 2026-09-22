@@ -1869,28 +1869,15 @@ a.ct-tile:hover .ct-tile-ic{transform:rotate(-8deg) scale(1.08)}
 @keyframes fcspark{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
 
 /* ===== login ===== */
-.login-shell{min-height:calc(100svh - 76px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
-.login-side{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;gap:40px;padding:clamp(28px,5vw,64px);color:#F4F8F4;background:linear-gradient(160deg,#0F3B31,#0B2621)}
-.login-side::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(70% 60% at 15% 15%,rgba(111,166,135,.42),transparent 60%),radial-gradient(60% 55% at 92% 88%,rgba(184,144,60,.26),transparent 62%)}
-.login-brand{display:inline-flex;align-items:center;gap:12px;align-self:start}
-.login-brand .brand-mark{width:44px;height:44px}
-.login-brand .brand-t b{color:#fff}
-.login-brand .brand-t small{color:rgba(255,255,255,.68)}
-.login-side-mid{display:grid;gap:18px;max-width:26em}
-.login-kick{display:inline-flex;align-items:center;gap:8px;padding:.5em 1em;border-radius:999px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);font-size:.85rem;font-weight:600;width:fit-content}
-.login-kick .ico{width:16px;height:16px}
-.login-quote{font-family:var(--f-display);font-weight:300;font-style:italic;font-size:clamp(1.5rem,2.8vw,2.2rem);line-height:1.3;color:#fff;font-variation-settings:"SOFT" 100,"opsz" 96}
-.login-stats{display:flex;gap:clamp(20px,4vw,48px)}
-.login-stats b{display:block;font-family:var(--f-display);font-weight:300;font-size:clamp(1.5rem,2.4vw,2.1rem);color:#fff}
-.login-stats span{font-size:.8rem;color:rgba(244,248,244,.7)}
-.login-formwrap{display:flex;align-items:center;justify-content:center;padding:clamp(28px,6vw,64px);background:var(--bg)}
-.login-card{width:100%;max-width:400px;display:grid;gap:22px}
+.login-shell{min-height:100svh;display:flex}
+.login-formwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px var(--gut);background:var(--bg)}
+.login-card{width:100%;max-width:380px;display:grid;gap:20px}
 .login-card.shake{animation:loginshake .5s}
 @keyframes loginshake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}100%{transform:translateX(0)}}
-.login-head{display:grid;gap:8px;justify-items:start}
-.login-head .brand-mark{width:48px;height:48px;margin-bottom:4px}
-.login-head h1{font-size:clamp(1.7rem,2.6vw,2.1rem)}
-.login-head .muted{font-size:.94rem}
+.login-head{display:grid;gap:6px;justify-items:center;text-align:center}
+.login-head .brand-mark{width:52px;height:52px;margin-bottom:6px}
+.login-head h1{font-size:clamp(1.5rem,2.4vw,1.8rem)}
+.login-head .muted{font-size:.92rem;max-width:30ch}
 .lf-field{display:grid;gap:8px;font-size:.85rem;font-weight:600;color:var(--ink-2)}
 .lf-field input{width:100%;font:inherit;font-size:1rem;font-weight:400;color:var(--ink);padding:.85em 1.05em;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);transition:box-shadow .3s}
 .lf-field input:focus-visible{outline:none;box-shadow:inset 0 0 0 1.5px var(--fern),0 0 0 4px color-mix(in srgb,var(--fern) 18%,transparent)}
@@ -1906,13 +1893,7 @@ a.ct-tile:hover .ct-tile-ic{transform:rotate(-8deg) scale(1.08)}
 .lf-submit{width:100%;padding:.95em 1.6em}
 .lf-note{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--ink-3)}
 .lf-note .ico{width:1.1em;height:1.1em;flex:none}
-.login-back{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;color:var(--ink-2);justify-self:start;transition:gap .3s,color .3s}
+.login-back{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;color:var(--ink-2);justify-self:center;transition:gap .3s,color .3s}
 .login-back:hover{gap:12px;color:var(--fern)}
 .login-back .ico{width:16px;height:16px}
-@media (max-width:880px){
-  .login-shell{grid-template-columns:1fr;min-height:auto}
-  .login-side{display:none}
-  .login-formwrap{padding-block:clamp(40px,10vw,64px)}
-}
-@media (max-width:420px){.login-card{max-width:100%}}
 @media (prefers-reduced-motion:reduce){.ft-credit a::before,.fc-spark{animation:none}}
