@@ -42,6 +42,7 @@ const hashStr=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 const REDUCED=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 const digits=s=>String(s||'').replace(/[^\d]/g,'');
+const paras=t=>String(t||'').split(/\n{2,}/).filter(Boolean).map(p=>`<p>${esc(p)}</p>`).join('');
 const tel=s=>'tel:'+String(s||'').replace(/[^\d+]/g,'');
 const HUES=[158,198,38,14,262,98];
 
