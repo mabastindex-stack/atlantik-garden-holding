@@ -235,14 +235,12 @@ function pageLogin(){
       <div class="login-head">
         <span class="brand-mark">${c.logo?`<img src="${esc(c.logo)}" alt="">`:LOGO}</span>
         <h1>${esc(c.name||'Admin')}</h1>
-        <p class="muted">Sign in to manage products, factories and offers.</p>
       </div>
       <form id="loginForm" novalidate autocomplete="on">
         <label class="lf-field"><span>Email</span><input type="email" name="email" autocomplete="username" autofocus required placeholder="you@company.com"></label>
         <label class="lf-field"><span>Password</span><div class="lf-passwrap"><input type="password" name="password" autocomplete="current-password" required placeholder="Your password"><button type="button" class="lf-eye" data-act="togglepass" aria-label="Show password">${ico('eye')}</button></div></label>
         <button class="btn btn-primary lf-submit" type="submit"><span>Sign in</span>${ico('arrow')}</button>
       </form>
-      <a class="login-back" href="index.html">${ico('left')}Back to the site</a>
     </div>
   </div>
   </section>`;
