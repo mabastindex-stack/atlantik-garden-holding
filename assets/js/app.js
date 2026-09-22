@@ -128,7 +128,7 @@ function fallbackCopy(txt){
 }
 
 /* ================= API (read only) ================= */
-const API_BASE='http://127.0.0.1:8000/api';
+const API_BASE=/^(atlantikgh\.com|www\.atlantikgh\.com)$/.test(location.hostname)?'https://api.atlantikgh.com/api':'http://127.0.0.1:8000/api';
 async function apiFetch(path){
   let res;
   try{res=await fetch(API_BASE+path,{headers:{Accept:'application/json'}})}

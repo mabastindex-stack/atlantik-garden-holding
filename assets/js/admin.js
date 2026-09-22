@@ -79,7 +79,7 @@ let toastT;
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
 
 /* ================= AUTH + API ================= */
-const API_BASE='http://127.0.0.1:8000/api';
+const API_BASE=/^(atlantikgh\.com|www\.atlantikgh\.com)$/.test(location.hostname)?'https://api.atlantikgh.com/api':'http://127.0.0.1:8000/api';
 const TOKENKEY='agh.token';
 function getToken(){try{return localStorage.getItem(TOKENKEY)||sessionStorage.getItem(TOKENKEY)}catch(e){return null}}
 function saveToken(token,remember){try{if(remember)localStorage.setItem(TOKENKEY,token);else sessionStorage.setItem(TOKENKEY,token)}catch(e){}}
