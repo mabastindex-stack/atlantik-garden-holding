@@ -229,6 +229,7 @@ const SITE_FIELDS=SITE.flatMap(s=>s[1]);
 function pageLogin(){
   const c=S().company;
   return `<section class="login-shell">
+  <i class="login-orb a" aria-hidden="true"></i><i class="login-orb b" aria-hidden="true"></i>
   <div class="login-formwrap">
     <div class="login-card">
       <div class="login-head">

@@ -1869,15 +1869,28 @@ a.ct-tile:hover .ct-tile-ic{transform:rotate(-8deg) scale(1.08)}
 @keyframes fcspark{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
 
 /* ===== login ===== */
-.login-shell{min-height:100svh;display:flex}
-.login-formwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px var(--gut);background:var(--bg)}
-.login-card{width:100%;max-width:380px;display:grid;gap:20px}
+.login-shell{min-height:100svh;display:flex;position:relative;isolation:isolate;overflow:clip;background:linear-gradient(160deg,#0F3B31,#0B2621)}
+.login-shell::before{content:'';position:absolute;inset:0;z-index:-2;background:radial-gradient(70% 60% at 18% 20%,rgba(111,166,135,.5),transparent 60%),radial-gradient(60% 55% at 88% 15%,rgba(90,150,190,.24),transparent 62%),radial-gradient(55% 55% at 50% 105%,rgba(200,155,60,.26),transparent 60%);background-size:160% 160%;animation:loginAurora 22s ease-in-out infinite alternate}
+@keyframes loginAurora{to{background-position:100% 40%}}
+.login-orb{position:absolute;border-radius:50%;filter:blur(70px);z-index:-1;pointer-events:none}
+.login-orb.a{width:clamp(220px,32vw,420px);height:clamp(220px,32vw,420px);background:#2F7D52;opacity:.55;top:-10%;left:-8%;animation:loginOrb 17s ease-in-out infinite}
+.login-orb.b{width:clamp(180px,26vw,360px);height:clamp(180px,26vw,360px);background:#C98410;opacity:.4;bottom:-12%;right:-6%;animation:loginOrb 21s ease-in-out infinite reverse}
+@keyframes loginOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(4%,-6%) scale(1.1)}}
+.login-formwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px var(--gut);position:relative;z-index:1}
+.login-card{
+  --bg:#FAFBF6;--surface:#FFFFFF;--ink:#10281F;--ink-2:#3E5A50;--ink-3:#6B857A;--line:rgba(16,40,31,.13);--fern:#2F7D52;--btn:#1F5C3E;--on-btn:#F8FCF7;
+  width:100%;max-width:380px;display:grid;gap:20px;background:var(--surface);color:var(--ink);
+  padding:clamp(28px,4.4vw,44px);border-radius:28px;box-shadow:0 44px 90px -30px rgba(0,0,0,.55),inset 0 0 0 1px var(--line);
+  opacity:0;transform:translateY(14px);animation:loginCardIn .7s var(--ease,cubic-bezier(.22,.7,.2,1)) .1s forwards;
+}
+@keyframes loginCardIn{to{opacity:1;transform:none}}
 .login-card.shake{animation:loginshake .5s}
 @keyframes loginshake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}100%{transform:translateX(0)}}
 .login-head{display:grid;gap:6px;justify-items:center;text-align:center}
-.login-head .brand-mark{width:52px;height:52px;margin-bottom:6px}
-.login-head h1{font-size:clamp(1.5rem,2.4vw,1.8rem)}
-.login-head .muted{font-size:.92rem;max-width:30ch}
+.login-head .brand-mark{width:52px;height:52px;margin-bottom:6px;box-shadow:0 10px 24px -8px rgba(31,92,62,.55)}
+.login-head h1{font-size:clamp(1.5rem,2.4vw,1.8rem);color:var(--ink)}
+.login-head .muted{font-size:.92rem;max-width:30ch;color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){.login-shell::before,.login-orb{animation:none}.login-card{opacity:1;transform:none;animation:none}}
 .lf-field{display:grid;gap:8px;font-size:.85rem;font-weight:600;color:var(--ink-2)}
 .lf-field input{width:100%;font:inherit;font-size:1rem;font-weight:400;color:var(--ink);padding:.85em 1.05em;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);transition:box-shadow .3s}
 .lf-field input:focus-visible{outline:none;box-shadow:inset 0 0 0 1.5px var(--fern),0 0 0 4px color-mix(in srgb,var(--fern) 18%,transparent)}
