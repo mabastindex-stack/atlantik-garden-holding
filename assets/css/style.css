@@ -968,7 +968,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 /* page transitions + reveal */
 #main{transition:opacity .28s ease,transform .4s var(--ease);outline:none}
 #main.is-out{opacity:0;transform:translateY(10px)}
-.js [data-reveal]{opacity:0;transform:translateY(22px);transition:opacity 1s var(--ease) var(--d,0ms),transform 1s var(--ease) var(--d,0ms)}
+.js [data-reveal]{opacity:0;transform:translateY(22px);transition:opacity .5s var(--ease) var(--d,0ms),transform .5s var(--ease) var(--d,0ms)}
 .js [data-reveal].in{opacity:1;transform:none}
 .hide-foot .footer{display:none}
 @media (prefers-reduced-motion:reduce){
