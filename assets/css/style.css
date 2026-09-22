@@ -1484,6 +1484,8 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fd-hero{position:relative;isolation:isolate;overflow:hidden;color:#F4F8F4;min-height:clamp(360px,46vw,560px);display:flex;align-items:flex-end;background:linear-gradient(150deg,hsl(var(--h) 40% 20%),hsl(var(--h) 46% 9%))}
 .fd-media{position:absolute;inset:0;z-index:-2}
 .fd-media .photo{width:100%;height:100%;object-fit:cover;opacity:.85}
+.fd-wrap{position:relative}
+.fd-wrap>.fd-media{position:relative;inset:auto;z-index:auto;aspect-ratio:4/3;border-radius:28px;overflow:hidden;margin-bottom:28px}
 .fd-orb{position:absolute;z-index:-1;border-radius:50%;filter:blur(60px);opacity:.5;animation:float 15s ease-in-out infinite alternate}
 .fd-orb.a{width:420px;height:420px;right:-100px;top:-140px;background:hsl(var(--h) 70% 55%)}
 .fd-orb.b{width:340px;height:340px;left:-100px;bottom:-140px;background:var(--citrus);animation-delay:-6s}
