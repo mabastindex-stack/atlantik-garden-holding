@@ -588,7 +588,7 @@ function reveal(root){
   $$('[data-stagger]',root).forEach(p=>[...p.children].forEach((c,i)=>{if(!c.hasAttribute('data-reveal')){c.setAttribute('data-reveal','');c.style.setProperty('--d',Math.min(i,9)*70+'ms')}}));
   const els=$$('[data-reveal]:not(.in)',root);
   if(!('IntersectionObserver' in window)){els.forEach(e=>e.classList.add('in'));return}
-  if(!io)io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.01,rootMargin:'0px 0px 20% 0px'});
+  if(!io)io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1,rootMargin:'0px 0px -5% 0px'});
   els.forEach(e=>io.observe(e));
 }
 function initCounters(root){
