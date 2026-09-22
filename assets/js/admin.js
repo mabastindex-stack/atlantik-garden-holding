@@ -240,7 +240,6 @@ function pageLogin(){
       <form id="loginForm" novalidate autocomplete="on">
         <label class="lf-field"><span>Email</span><input type="email" name="email" autocomplete="username" autofocus required placeholder="you@company.com"></label>
         <label class="lf-field"><span>Password</span><div class="lf-passwrap"><input type="password" name="password" autocomplete="current-password" required placeholder="Your password"><button type="button" class="lf-eye" data-act="togglepass" aria-label="Show password">${ico('eye')}</button></div></label>
-        <div class="lf-row"><label class="lf-remember"><input type="checkbox" name="remember" checked><span>Remember me</span></label><a class="lf-forgot" href="mailto:${esc(c.email)}">Forgot password?</a></div>
         <button class="btn btn-primary lf-submit" type="submit"><span>Sign in</span>${ico('arrow')}</button>
       </form>
       <a class="login-back" href="index.html">${ico('left')}Back to the site</a>
@@ -329,7 +328,7 @@ document.addEventListener('submit',e=>{
     const d=Object.fromEntries(new FormData(form)),btn=$('.lf-submit',form);
     if(btn)btn.disabled=true;
     apiFetch('/login',{method:'POST',json:{email:d.email,password:d.password}}).then(res=>{
-      saveToken(res.token,!!d.remember);
+      saveToken(res.token,true);
       location.hash='overview';
       renderAdmin();
       toast('Welcome back');
