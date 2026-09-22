@@ -706,19 +706,29 @@ document.addEventListener('error',e=>{
 },true);
 
 /* ================= BOOT ================= */
+const CACHEKEY='agh.cache.v1';
+function loadCache(){try{const raw=localStorage.getItem(CACHEKEY);return raw?JSON.parse(raw):null}catch(e){return null}}
+function saveCache(s){try{localStorage.setItem(CACHEKEY,JSON.stringify(s))}catch(e){}}
 function bootError(){
   $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center;gap:18px"><div><h2 style="margin-bottom:10px">Can’t reach the server</h2><p class="lead">Make sure the Laravel backend is running, then try again.</p></div><button class="btn btn-primary" data-act="retry">Try again</button></div>`;
 }
 async function boot(){
-  $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
+  const cached=loadCache();
+  if(cached){
+    state=cached;
+    initTheme();renderChrome();route(true);
+  }else{
+    $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
+  }
   try{
     const [settings,factories,products,agents,announcements]=await Promise.all([
       apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
-    state={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data};
-    initTheme();renderChrome();route(true);
-  }catch(e){bootError()}
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data};
+    state=fresh;saveCache(fresh);
+    if(!cached){initTheme();renderChrome();route(true)}
+  }catch(e){if(!cached)bootError()}
 }
 
 /* ================= INIT ================= */
