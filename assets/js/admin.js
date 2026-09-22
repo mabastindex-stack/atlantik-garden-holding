@@ -53,7 +53,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[]};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -100,7 +100,7 @@ async function apiFetch(path,{method='GET',json}={}){
 }
 async function logout(){
   try{await apiFetch('/logout',{method:'POST'})}catch(e){}
-  clearToken();toast('Signed out');renderAdmin();
+  clearToken();state.me=null;toast('Signed out');renderAdmin();
 }
 function brandHtml(c){
   const m=/^(.*?)\s+Holding$/i.exec(c.name||'');
@@ -247,7 +247,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['site','Site and profile']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -256,6 +256,18 @@ function dashBody(tab){
   if(tab==='site'){
     const s=S();formCtx={img:{}};SITE_FIELDS.filter(f=>f.t==='image').forEach(f=>formCtx.img[f.k]=getPath(s,f.k)||'');
     return `<div class="dhead"><h2>Site and profile</h2></div><form id="siteForm" novalidate>${SITE.map(([t,fs])=>`<div class="dpanel"><h3>${t}</h3><div class="fgrid2">${fs.map(f=>fieldHtml(f,getPath(s,f.k))).join('')}</div></div>`).join('')}<div class="savebar"><button class="btn btn-primary" type="submit">Save changes</button></div></form>`;
+  }
+  if(tab==='account'){
+    if(!state.me){
+      apiFetch('/me').then(me=>{state.me=me;rerenderDash()}).catch(()=>{state.me={name:'',email:''};rerenderDash()});
+      return `<div class="dhead"><h2>Account settings</h2></div><p class="lead">Loading…</p>`;
+    }
+    return `<div class="dhead"><h2>Account settings</h2></div><form id="accountForm" novalidate><div class="dpanel"><h3>Sign-in details</h3><div class="fgrid2">
+    <label class="field"><span>Name</span><input name="name" required value="${esc(state.me.name)}"></label>
+    <label class="field"><span>Email</span><input type="email" name="email" required autocomplete="username" value="${esc(state.me.email)}"></label>
+    <label class="field wide"><span>Current password</span><input type="password" name="current_password" required autocomplete="current-password" placeholder="Needed to confirm any change"></label>
+    <label class="field wide"><span>New password</span><input type="password" name="new_password" autocomplete="new-password" placeholder="Leave blank to keep your current password" minlength="6"></label>
+    </div></div><div class="savebar"><button class="btn btn-primary" type="submit">Save account</button></div></form>`;
   }
   const cards=[['products','Products',state.products.length],['factories','Factories',state.factories.length],['agents','Agents',state.agents.length],['notices','Notices and offers',state.announcements.length]];
   return `<div class="dhead"><h2>Overview</h2></div><div class="dcards">${cards.map(([t,l,n])=>`<a class="dcard" href="#${t}"><b>${n}</b><span>${l}</span></a>`).join('')}</div>
@@ -346,6 +358,20 @@ document.addEventListener('submit',e=>{
     apiFetch('/settings',{method:'PUT',json:payload}).then(res=>{
       state.settings=res;toast('Site settings saved');
     }).catch(err=>toast(err.network?'Could not reach the server':'Could not save changes')).finally(()=>{if(btn)btn.disabled=false});
+    return;
+  }
+  if(form.id==='accountForm'){
+    const d=Object.fromEntries(new FormData(form));
+    if(!d.name||!d.email||!d.current_password){toast('Name, email and current password are required');return}
+    const payload={name:d.name,email:d.email,current_password:d.current_password};
+    if(d.new_password)payload.new_password=d.new_password;
+    const btn=form.querySelector('button[type=submit]');if(btn)btn.disabled=true;
+    apiFetch('/account',{method:'PUT',json:payload}).then(res=>{
+      state.me=res;form.current_password.value='';form.new_password.value='';
+      toast('Account updated');
+    }).catch(err=>{
+      toast(err.network?'Could not reach the server':(err.data&&err.data.message)||'Could not save changes');
+    }).finally(()=>{if(btn)btn.disabled=false});
     return;
   }
   if(form.dataset.form){

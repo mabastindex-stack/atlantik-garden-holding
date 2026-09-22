@@ -19,6 +19,7 @@ Route::apiResource('announcements', AnnouncementController::class)->only(['index
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/account', [AuthController::class, 'updateProfile']);
 
     Route::put('/settings', [SettingController::class, 'update']);
     Route::apiResource('factories', FactoryController::class)->except(['index', 'show']);
