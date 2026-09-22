@@ -22,7 +22,7 @@ class FactoryController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $this->validated($request);
+        $data = $this->withDefaults($this->validated($request));
 
         $factory = Factory::create($data);
 
@@ -42,9 +42,7 @@ class FactoryController extends Controller
      */
     public function update(Request $request, Factory $factory)
     {
-        $data = $this->validated($request, $factory);
-
-        $factory->update($data);
+        $factory->update($this->withDefaults($this->validated($request, $factory)));
 
         return new FactoryResource($factory);
     }
@@ -68,16 +66,25 @@ class FactoryController extends Controller
         return $request->validate([
             'slug' => $slugRule,
             'country' => ['required', 'string'],
-            'code' => ['required', 'string', 'size:2'],
-            'city' => ['required', 'string'],
-            'agency' => ['required', 'string'],
-            'director' => ['required', 'string'],
-            'since' => ['required', 'string'],
-            'employees' => ['required', 'string'],
-            'capacity' => ['required', 'string'],
-            'certs' => ['required', 'array'],
+            'code' => ['nullable', 'string', 'size:2'],
+            'city' => ['nullable', 'string'],
+            'agency' => ['nullable', 'string'],
+            'director' => ['nullable', 'string'],
+            'since' => ['nullable', 'string'],
+            'employees' => ['nullable', 'string'],
+            'capacity' => ['nullable', 'string'],
+            'certs' => ['nullable', 'array'],
             'image' => ['nullable', 'string'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
         ]);
+    }
+
+    private function withDefaults(array $data): array
+    {
+        return array_merge([
+            'code' => 'ES', 'city' => '', 'agency' => '', 'director' => '',
+            'since' => '', 'employees' => '', 'capacity' => '', 'certs' => [],
+            'description' => '',
+        ], array_filter($data, fn ($v) => $v !== null));
     }
 }

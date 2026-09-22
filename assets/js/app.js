@@ -45,7 +45,6 @@ const SEED={
       ]
     },
     socials:{facebook:'https://www.facebook.com/',instagram:'https://www.instagram.com/',whatsapp:'https://wa.me/9647500000000',telegram:'https://t.me/',linkedin:'https://www.linkedin.com/',tiktok:'',youtube:''},
-    admin:{email:'admin@atlantikgarden.com',password:'Atlantik@2025'},
     agent:{
       name:'Atlantik Kurdistan Sales Center',
       tagline:'Authorised agent of Atlantik Garden Holding for Iraq and the Kurdistan Region.',
@@ -198,21 +197,8 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-const KEY='atlantik.garden.v3';
-const clean=o=>clone(o);
-function load(){
-  const base=clean(SEED),raw=store.get(KEY);
-  if(!raw)return base;
-  try{
-    const d=JSON.parse(raw);
-    ['products','factories','agents','announcements'].forEach(k=>{if(Array.isArray(d[k]))base[k]=d[k]});
-    if(d.settings)['company','socials','agent','admin'].forEach(k=>{if(d.settings[k])base.settings[k]=Object.assign(base.settings[k],d.settings[k])});
-    return base;
-  }catch(e){return base}
-}
-let state=load();
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[]};
 const S=()=>state.settings;
-function persist(){if(!store.set(KEY,JSON.stringify(state)))toast('Storage is full. Try smaller images.')}
 const fById=id=>state.factories.find(f=>f.id===id);
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const daysLeft=a=>a.until?Math.ceil((new Date(a.until+'T23:59:59')-new Date())/864e5):null;
@@ -258,11 +244,30 @@ function fallbackCopy(txt){
   let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();return ok;
 }
 
-/* ================= AUTH ================= */
-const AUTHKEY='agh.admin';
-function isAdmin(){try{return localStorage.getItem(AUTHKEY)==='1'||sessionStorage.getItem(AUTHKEY)==='1'}catch(e){return false}}
-function loginAs(remember){try{if(remember)localStorage.setItem(AUTHKEY,'1');else sessionStorage.setItem(AUTHKEY,'1')}catch(e){}}
-function logout(){try{localStorage.removeItem(AUTHKEY);sessionStorage.removeItem(AUTHKEY)}catch(e){}location.hash='#/';toast('Signed out')}
+/* ================= AUTH + API ================= */
+const API_BASE='http://127.0.0.1:8000/api';
+const TOKENKEY='agh.token';
+function getToken(){try{return localStorage.getItem(TOKENKEY)||sessionStorage.getItem(TOKENKEY)}catch(e){return null}}
+function saveToken(token,remember){try{if(remember)localStorage.setItem(TOKENKEY,token);else sessionStorage.setItem(TOKENKEY,token)}catch(e){}}
+function clearToken(){try{localStorage.removeItem(TOKENKEY);sessionStorage.removeItem(TOKENKEY)}catch(e){}}
+function isAdmin(){return !!getToken()}
+async function apiFetch(path,{method='GET',json}={}){
+  const token=getToken();
+  const headers={Accept:'application/json'};
+  if(json)headers['Content-Type']='application/json';
+  if(token)headers.Authorization='Bearer '+token;
+  let res;
+  try{res=await fetch(API_BASE+path,{method,headers,body:json?JSON.stringify(json):undefined})}
+  catch(e){throw Object.assign(new Error('Could not reach the server'),{network:true})}
+  const data=await res.json().catch(()=>({}));
+  if(res.status===401)clearToken();
+  if(!res.ok)throw Object.assign(new Error(data.message||'Request failed'),{status:res.status,data});
+  return data;
+}
+async function logout(){
+  try{await apiFetch('/logout',{method:'POST'})}catch(e){}
+  clearToken();location.hash='#/';toast('Signed out');
+}
 
 /* ================= CHROME ================= */
 const NAV=[['home','Home'],['products','Products'],['factories','Factories'],['agents','Agents'],['about','About'],['contact','Contact']];
@@ -1031,7 +1036,7 @@ function readImage(file,max){
 const countryOpts=()=>Object.entries(COUNTRIES);
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
 const ENT={
-  products:{one:'product',title:'Products',items:()=>state.products,label:p=>p.name,
+  products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
     make:()=>({id:uid('p-'),name:'',category:'Fruit',factoryId:(state.factories[0]||{}).id||'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
     fields:()=>[
       {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'text',req:1,list:[...new Set(state.products.map(p=>p.category))]},
@@ -1044,7 +1049,7 @@ const ENT={
       {k:'tint',l:'Placeholder tint',t:'color'},
       {k:'image',l:'Product photo',t:'image',wide:1,hint:'Upload a photo to preview it here. For the live site, save it as assets/img/products/<id>.jpg.'}],
     row:p=>rowHtml('products',p.id,photo(p.image,p.name,p.imageFb),p.name,`${p.category}, ${money(p.price)} per ${UNIT[p.unit]||p.unit}${p.discount?`, ${p.discount}% off`:''}`,p.tint)},
-  factories:{one:'factory',title:'Factories',items:()=>state.factories,label:f=>f.country,
+  factories:{one:'factory',title:'Factories',apiPath:'/factories',items:()=>state.factories,label:f=>f.country,
     make:()=>({id:uid('f-'),country:'',code:'ES',city:'',agency:'',director:'',since:'',employees:'',capacity:'',certs:[],description:'',image:''}),
     fields:()=>[
       {k:'country',l:'Country name',t:'text',req:1},{k:'code',l:'Flag',t:'select',opts:countryOpts()},
@@ -1055,7 +1060,7 @@ const ENT={
       {k:'description',l:'About the factory (blank line between paragraphs)',t:'textarea',rows:6,wide:1},
       {k:'image',l:'Cover photo',t:'image',wide:1}],
     row:f=>rowHtml('factories',f.id,flag(f.code),f.country,`${f.agency}, ${productsOf(f.id).length} products`)},
-  agents:{one:'agent',title:'Agents',items:()=>state.agents,label:a=>a.name,
+  agents:{one:'agent',title:'Agents',apiPath:'/agents',items:()=>state.agents,label:a=>a.name,
     make:()=>({id:uid('a-'),name:'',contact:'',role:'',code:'KU',city:'',territory:'',phone:'',whatsapp:'',email:'',hours:'',logo:''}),
     fields:()=>[
       {k:'name',l:'Agent or sales centre name',t:'text',req:1,wide:1},{k:'contact',l:'Contact person',t:'text'},{k:'role',l:'Role',t:'text'},
@@ -1063,7 +1068,7 @@ const ENT={
       {k:'territory',l:'Territory covered',t:'text',wide:1},{k:'phone',l:'Phone',t:'tel',req:1},{k:'whatsapp',l:'WhatsApp number',t:'tel'},
       {k:'email',l:'Email',t:'email'},{k:'hours',l:'Opening hours',t:'text'},{k:'logo',l:'Logo',t:'image',wide:1}],
     row:a=>rowHtml('agents',a.id,flag(a.code),a.name,`${a.city}, ${a.phone}`)},
-  notices:{one:'notice',title:'Notices and offers',items:()=>state.announcements,label:a=>a.title,
+  notices:{one:'notice',title:'Notices and offers',apiPath:'/announcements',items:()=>state.announcements,label:a=>a.title,
     make:()=>({id:uid('n-'),type:'offer',title:'',body:'',discount:0,code:'',until:''}),
     fields:()=>[
       {k:'type',l:'Type',t:'select',opts:[['offer','Offer or discount'],['notice','Notice'],['note','Note']]},{k:'discount',l:'Discount (%)',t:'number',min:0,max:90},
@@ -1108,7 +1113,7 @@ function pageLogin(){
         <div class="lf-row"><label class="lf-remember"><input type="checkbox" name="remember" checked><span>Remember me</span></label><a class="lf-forgot" href="mailto:${esc(c.email)}">Forgot password?</a></div>
         <button class="btn btn-primary lf-submit" type="submit"><span>Sign in</span>${ico('arrow')}</button>
       </form>
-      <p class="lf-note">${ico('note')}Preview credentials live in the code until the backend takes over.</p>
+      <p class="lf-note">${ico('note')}Signed in with a token from the API. No cookies, no third parties.</p>
       <a class="login-back" href="#/">${ico('left')}Back to the site</a>
     </div>
   </div>
@@ -1116,7 +1121,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['site','Site and profile'],['data','Backup']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['site','Site and profile']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -1126,20 +1131,13 @@ function dashBody(tab){
     const s=S();formCtx={img:{}};SITE_FIELDS.filter(f=>f.t==='image').forEach(f=>formCtx.img[f.k]=getPath(s,f.k)||'');
     return `<div class="dhead"><h2>Site and profile</h2></div><form id="siteForm" novalidate>${SITE.map(([t,fs])=>`<div class="dpanel"><h3>${t}</h3><div class="fgrid2">${fs.map(f=>fieldHtml(f,getPath(s,f.k))).join('')}</div></div>`).join('')}<div class="savebar"><button class="btn btn-primary" type="submit">Save changes</button></div></form>`;
   }
-  if(tab==='data'){
-    return `<div class="dhead"><h2>Backup</h2></div>
-    <div class="dpanel"><h3>Export</h3><p class="muted" style="margin-bottom:14px">Copy this text and keep it somewhere safe. It holds everything you added, including uploaded images.</p><textarea class="mono" id="exportBox" readonly>${esc(JSON.stringify(state))}</textarea><div style="margin-top:14px"><button class="btn btn-primary btn-sm" data-act="copy-json">Copy all data</button></div></div>
-    <div class="dpanel"><h3>Import</h3><textarea class="mono" id="importBox" placeholder="Paste exported data here"></textarea><div style="margin-top:14px"><button class="btn btn-ghost btn-sm" data-act="import">Import data</button></div></div>
-    <div class="dpanel"><h3>Reset</h3><p class="muted" style="margin-bottom:14px">Replace everything with the original sample content.</p><button class="btn btn-ghost btn-sm danger" data-act="reset">Reset to sample content</button></div>`;
-  }
   const cards=[['products','Products',state.products.length],['factories','Factories',state.factories.length],['agents','Agents',state.agents.length],['notices','Notices and offers',state.announcements.length]];
   return `<div class="dhead"><h2>Overview</h2></div><div class="dcards">${cards.map(([t,l,n])=>`<a class="dcard" href="#/dashboard/${t}"><b>${n}</b><span>${l}</span></a>`).join('')}</div>
-  <div class="dpanel"><h3>Quick actions</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" data-act="add" data-kind="products">${ico('plus')}Product</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="factories">${ico('plus')}Factory</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="agents">${ico('plus')}Agent</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="notices">${ico('plus')}Notice</button></div></div>
-  <div class="dpanel"><h3>About this preview</h3><p class="muted">Changes you make here are saved in this browser only, so you can try every screen safely. When the site is connected to your Laravel backend, the same forms will save to the database.</p></div>`;
+  <div class="dpanel"><h3>Quick actions</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" data-act="add" data-kind="products">${ico('plus')}Product</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="factories">${ico('plus')}Factory</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="agents">${ico('plus')}Agent</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="notices">${ico('plus')}Notice</button></div></div>`;
 }
 function pageDashboard(arg){
   const tab=DTABS.some(t=>t[0]===arg)?arg:'overview';current.arg=tab;
-  return `<div class="wrap dash"><aside class="dside"><h1>Dashboard</h1><nav class="dtabs" aria-label="Dashboard">${DTABS.map(([k,l])=>`<a href="#/dashboard/${k}"${k===tab?' aria-current="page"':''}>${l}</a>`).join('')}</nav><div class="dside-foot"><p class="dnote">Preview mode: changes are stored in this browser only.</p><button class="btn btn-ghost btn-sm dlogout" type="button" data-act="logout">${ico('logout')}Log out</button></div></aside><section class="dmain" id="dmain">${dashBody(tab)}</section></div>`;
+  return `<div class="wrap dash"><aside class="dside"><h1>Dashboard</h1><nav class="dtabs" aria-label="Dashboard">${DTABS.map(([k,l])=>`<a href="#/dashboard/${k}"${k===tab?' aria-current="page"':''}>${l}</a>`).join('')}</nav><div class="dside-foot"><p class="dnote">Changes save straight to the database.</p><button class="btn btn-ghost btn-sm dlogout" type="button" data-act="logout">${ico('logout')}Log out</button></div></aside><section class="dmain" id="dmain">${dashBody(tab)}</section></div>`;
 }
 function rerenderDash(){const m=$('#dmain');if(m){m.innerHTML=dashBody(current.arg)}}
 function openEntityForm(kind,id){
@@ -1203,11 +1201,14 @@ document.addEventListener('click',e=>{
     case'copy':copyText(d.code).then(ok=>toast(ok?'Code copied: '+d.code:'Copy failed. Select the code and copy it manually.'));break;
     case'add':openEntityForm(d.kind);break;
     case'edit':openEntityForm(d.kind,d.id);break;
-    case'del':{const E=ENT[d.kind],it=E.items().find(x=>x.id===d.id);if(!it)break;confirmSheet('Delete \u201C'+E.label(it)+'\u201D?','This can\u2019t be undone.',()=>{const arr=E.items();arr.splice(arr.findIndex(x=>x.id===d.id),1);persist();renderChrome();rerenderDash();toast('Deleted')});break}
+    case'del':{const E=ENT[d.kind],it=E.items().find(x=>x.id===d.id);if(!it)break;confirmSheet('Delete \u201C'+E.label(it)+'\u201D?','This can\u2019t be undone.',()=>{
+      apiFetch(`${E.apiPath}/${d.id}`,{method:'DELETE'}).then(()=>{
+        const arr=E.items();arr.splice(arr.findIndex(x=>x.id===d.id),1);
+        renderChrome();rerenderDash();toast('Deleted');
+      }).catch(err=>toast(err.network?'Could not reach the server':'Could not delete. Try again.'));
+    });break}
     case'img-clear':{const box=t.closest('.imgpick');if(box){formCtx.img[box.dataset.k]='';$('.imgprev',box).innerHTML='<span>No image</span>'}break}
-    case'copy-json':copyText(JSON.stringify(state)).then(ok=>toast(ok?'All data copied':'Copy failed. Select the text and copy it manually.'));break;
-    case'import':{const v=($('#importBox')||{}).value||'';try{const dd=JSON.parse(v);if(!dd.products||!dd.factories)throw 0;state=Object.assign(clean(SEED),dd);state.settings=Object.assign(clean(SEED).settings,dd.settings||{});persist();renderChrome();rerenderDash();toast('Data imported')}catch(err){toast('That text isn\u2019t valid exported data')}break}
-    case'reset':confirmSheet('Reset everything?','All your changes will be replaced with the sample content.',()=>{state=clean(SEED);persist();renderChrome();rerenderDash();toast('Sample content restored')});break;
+    case'retry':location.reload();break;
   }
 });
 document.addEventListener('input',e=>{if(e.target.id==='q'){ui.q=e.target.value;renderGrid()}});
@@ -1221,19 +1222,19 @@ document.addEventListener('change',e=>{
 document.addEventListener('submit',e=>{
   const form=e.target;e.preventDefault();
   if(form.id==='loginForm'){
-    const d=Object.fromEntries(new FormData(form)),admin=S().admin||{};
-    const ok=String(d.email||'').trim().toLowerCase()===String(admin.email||'').toLowerCase()&&String(d.password||'')===String(admin.password||'');
-    if(!ok){
+    const d=Object.fromEntries(new FormData(form)),btn=$('.lf-submit',form);
+    if(btn)btn.disabled=true;
+    apiFetch('/login',{method:'POST',json:{email:d.email,password:d.password}}).then(res=>{
+      saveToken(res.token,!!d.remember);
+      document.body.classList.add('hide-foot');
+      $('#main').innerHTML=pageDashboard(current.arg);
+      window.scrollTo(0,0);
+      toast('Welcome back');
+    }).catch(err=>{
       const card=form.closest('.login-card');
       if(card){card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake')}
-      toast('Email or password is incorrect');
-      return;
-    }
-    loginAs(!!d.remember);
-    document.body.classList.add('hide-foot');
-    $('#main').innerHTML=pageDashboard(current.arg);
-    window.scrollTo(0,0);
-    toast('Welcome back');
+      toast(err.network?'Could not reach the server':'Email or password is incorrect');
+    }).finally(()=>{if(btn)btn.disabled=false});
     return;
   }
   if(form.id==='contactForm'){
@@ -1246,17 +1247,30 @@ document.addEventListener('submit',e=>{
   if(form.id==='siteForm'){
     const v=collect(form,SITE_FIELDS,formCtx);
     if(!v['company.name']){toast('Company name is required');return}
-    SITE_FIELDS.forEach(f=>setPath(state.settings,f.k,v[f.k]));
-    persist();renderChrome();toast('Site settings saved');return;
+    const payload={company:{},socials:{},agent:{}};
+    SITE_FIELDS.forEach(f=>setPath(payload,f.k,v[f.k]));
+    const btn=form.querySelector('button[type=submit]');if(btn)btn.disabled=true;
+    apiFetch('/settings',{method:'PUT',json:payload}).then(res=>{
+      state.settings=res;renderChrome();toast('Site settings saved');
+    }).catch(err=>toast(err.network?'Could not reach the server':'Could not save changes')).finally(()=>{if(btn)btn.disabled=false});
+    return;
   }
   if(form.dataset.form){
     const kind=form.dataset.form,id=form.dataset.id,E=ENT[kind],fields=E.fields(),v=collect(form,fields,formCtx);
     if(kind==='factories'&&!v.country)v.country=COUNTRIES[v.code]||'';
     const bad=fields.find(f=>f.req&&!v[f.k]);
     if(bad){toast(bad.l+' is required');const el=form.querySelector(`[name="${bad.k}"]`);if(el)el.focus();return}
-    const list=E.items();
-    if(id){const i=list.findIndex(x=>x.id===id);list[i]=Object.assign({},list[i],v)}else list.push(Object.assign(E.make(),v));
-    persist();closeSheet();renderChrome();rerenderDash();toast(id?'Changes saved':E.one.charAt(0).toUpperCase()+E.one.slice(1)+' added');
+    const payload=Object.assign({},v);
+    if(!id)payload.slug=E.make().id;
+    const path=id?`${E.apiPath}/${id}`:E.apiPath,method=id?'PUT':'POST';
+    const btn=form.querySelector('button[type=submit]');if(btn)btn.disabled=true;
+    apiFetch(path,{method,json:payload}).then(res=>{
+      const item=res.data,list=E.items();
+      if(id){const i=list.findIndex(x=>x.id===id);list[i]=item}else list.push(item);
+      closeSheet();renderChrome();rerenderDash();toast(id?'Changes saved':E.one.charAt(0).toUpperCase()+E.one.slice(1)+' added');
+    }).catch(err=>{
+      toast(err.network?'Could not reach the server':(err.data&&err.data.message)||'Could not save changes');
+    }).finally(()=>{if(btn)btn.disabled=false});
   }
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(sheetOpen)closeSheet();document.body.classList.remove('menu-open')}});
@@ -1277,7 +1291,23 @@ document.addEventListener('error',e=>{
   else if(i.hasAttribute('data-photo'))i.remove();
 },true);
 
+/* ================= BOOT ================= */
+function bootError(){
+  $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center;gap:18px"><div><h2 style="margin-bottom:10px">Can’t reach the server</h2><p class="lead">Make sure the Laravel backend is running, then try again.</p></div><button class="btn btn-primary" data-act="retry">Try again</button></div>`;
+}
+async function boot(){
+  $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
+  try{
+    const [settings,factories,products,agents,announcements]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),
+    ]);
+    products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
+    state={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data};
+    initTheme();renderChrome();route(true);
+  }catch(e){bootError()}
+}
+
 /* ================= INIT ================= */
 document.documentElement.classList.add('js');
-initTheme();renderChrome();route(true);
+boot();
 })();

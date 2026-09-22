@@ -22,10 +22,7 @@ class AnnouncementController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $this->validated($request);
-        $data['discount'] ??= 0;
-
-        $announcement = Announcement::create($data);
+        $announcement = Announcement::create($this->withDefaults($this->validated($request)));
 
         return new AnnouncementResource($announcement);
     }
@@ -43,7 +40,7 @@ class AnnouncementController extends Controller
      */
     public function update(Request $request, Announcement $announcement)
     {
-        $announcement->update($this->validated($request, $announcement));
+        $announcement->update($this->withDefaults($this->validated($request, $announcement)));
 
         return new AnnouncementResource($announcement);
     }
@@ -63,16 +60,22 @@ class AnnouncementController extends Controller
         $slugRule = $announcement
             ? ['sometimes', 'string', 'alpha_dash', 'unique:announcements,slug,'.$announcement->id]
             : ['required', 'string', 'alpha_dash', 'unique:announcements,slug'];
-        $required = $announcement ? 'sometimes' : 'required';
 
         return $request->validate([
             'slug' => $slugRule,
-            'type' => [$required, 'in:offer,notice,note'],
-            'title' => [$required, 'string'],
-            'body' => [$required, 'string'],
-            'discount' => ['sometimes', 'integer', 'min:0', 'max:100'],
+            'type' => ['nullable', 'in:offer,notice,note'],
+            'title' => ['required', 'string'],
+            'body' => ['nullable', 'string'],
+            'discount' => ['nullable', 'integer', 'min:0', 'max:100'],
             'code' => ['nullable', 'string'],
             'until' => ['nullable', 'date'],
         ]);
+    }
+
+    private function withDefaults(array $data): array
+    {
+        return array_merge([
+            'type' => 'offer', 'body' => '', 'discount' => 0, 'code' => '',
+        ], array_filter($data, fn ($v) => $v !== null));
     }
 }

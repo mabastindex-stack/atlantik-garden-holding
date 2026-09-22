@@ -23,8 +23,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $this->mapColumns($this->validated($request));
-        $data['discount'] ??= 0;
+        $data = $this->withDefaults($this->mapColumns($this->validated($request)));
 
         $product = Product::create($data);
 
@@ -44,7 +43,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $data = $this->mapColumns($this->validated($request, $product));
+        $data = $this->withDefaults($this->mapColumns($this->validated($request, $product)));
 
         $product->update($data);
 
@@ -66,26 +65,25 @@ class ProductController extends Controller
         $slugRule = $product
             ? ['sometimes', 'string', 'alpha_dash', 'unique:products,slug,'.$product->id]
             : ['required', 'string', 'alpha_dash', 'unique:products,slug'];
-        $required = $product ? 'sometimes' : 'required';
 
         return $request->validate([
             'slug' => $slugRule,
-            'name' => [$required, 'string'],
-            'category' => [$required, 'string'],
-            'factoryId' => [$required, 'string', 'exists:factories,slug'],
-            'price' => [$required, 'numeric', 'min:0'],
-            'unit' => [$required, 'string'],
-            'discount' => ['sometimes', 'integer', 'min:0', 'max:100'],
+            'name' => ['required', 'string'],
+            'category' => ['nullable', 'string'],
+            'factoryId' => ['required', 'string', 'exists:factories,slug'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'unit' => ['nullable', 'string'],
+            'discount' => ['nullable', 'integer', 'min:0', 'max:100'],
             'art' => ['nullable', 'string'],
             'tint' => ['nullable', 'string'],
             'image' => ['nullable', 'string'],
-            'short' => [$required, 'string'],
-            'description' => [$required, 'string'],
-            'features' => [$required, 'array'],
-            'packaging' => [$required, 'string'],
-            'shelfLife' => [$required, 'string'],
-            'moq' => [$required, 'string'],
-            'season' => [$required, 'string'],
+            'short' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+            'features' => ['nullable', 'array'],
+            'packaging' => ['nullable', 'string'],
+            'shelfLife' => ['nullable', 'string'],
+            'moq' => ['nullable', 'string'],
+            'season' => ['nullable', 'string'],
         ]);
     }
 
@@ -101,5 +99,14 @@ class ProductController extends Controller
         }
 
         return $data;
+    }
+
+    private function withDefaults(array $data): array
+    {
+        return array_merge([
+            'category' => 'Fruit', 'price' => 0, 'unit' => 'kg', 'discount' => 0,
+            'short' => '', 'description' => '', 'features' => [], 'packaging' => '',
+            'shelf_life' => '', 'moq' => '', 'season' => '',
+        ], array_filter($data, fn ($v) => $v !== null));
     }
 }

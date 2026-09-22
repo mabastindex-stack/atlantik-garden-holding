@@ -22,7 +22,7 @@ class AgentController extends Controller
      */
     public function store(Request $request)
     {
-        $agent = Agent::create($this->validated($request));
+        $agent = Agent::create($this->withDefaults($this->validated($request)));
 
         return new AgentResource($agent);
     }
@@ -40,7 +40,7 @@ class AgentController extends Controller
      */
     public function update(Request $request, Agent $agent)
     {
-        $agent->update($this->validated($request, $agent));
+        $agent->update($this->withDefaults($this->validated($request, $agent)));
 
         return new AgentResource($agent);
     }
@@ -60,21 +60,28 @@ class AgentController extends Controller
         $slugRule = $agent
             ? ['sometimes', 'string', 'alpha_dash', 'unique:agents,slug,'.$agent->id]
             : ['required', 'string', 'alpha_dash', 'unique:agents,slug'];
-        $required = $agent ? 'sometimes' : 'required';
 
         return $request->validate([
             'slug' => $slugRule,
-            'name' => [$required, 'string'],
-            'contact' => [$required, 'string'],
-            'role' => [$required, 'string'],
-            'code' => [$required, 'string', 'size:2'],
-            'city' => [$required, 'string'],
-            'territory' => [$required, 'string'],
-            'phone' => [$required, 'string'],
+            'name' => ['required', 'string'],
+            'contact' => ['nullable', 'string'],
+            'role' => ['nullable', 'string'],
+            'code' => ['nullable', 'string', 'size:2'],
+            'city' => ['nullable', 'string'],
+            'territory' => ['nullable', 'string'],
+            'phone' => ['required', 'string'],
             'whatsapp' => ['nullable', 'string'],
-            'email' => [$required, 'email'],
-            'hours' => [$required, 'string'],
+            'email' => ['nullable', 'email'],
+            'hours' => ['nullable', 'string'],
             'logo' => ['nullable', 'string'],
         ]);
+    }
+
+    private function withDefaults(array $data): array
+    {
+        return array_merge([
+            'contact' => '', 'role' => '', 'code' => 'KU', 'city' => '',
+            'territory' => '', 'whatsapp' => null, 'email' => '', 'hours' => '',
+        ], array_filter($data, fn ($v) => $v !== null));
     }
 }
