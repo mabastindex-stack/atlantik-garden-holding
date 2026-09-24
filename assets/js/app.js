@@ -29,6 +29,10 @@ function flag(code){
   if(!FLAGS[code]&&c&&c.flagImage)return `<span class="flag"><img src="${esc(c.flagImage)}" alt="${label}"></span>`;
   return `<span class="flag"><svg viewBox="0 0 60 40" role="img" aria-label="${label}">${FLAGS[code]||'<rect width="60" height="40" fill="#8FAFA8"/><circle cx="30" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2"/><path d="M18 20h24M30 8c-6 8-6 16 0 24M30 8c6 8 6 16 0 24" stroke="#fff" stroke-width="1.6" fill="none"/>'}</svg></span>`;
 }
+function countryName(code){
+  const c=(state.countries||[]).find(x=>x.code===code);
+  return (c&&c.name)||COUNTRIES[code]||code;
+}
 
 /* ================= REMOTE FALLBACK PHOTOS ================= */
 const UNS=(id,w=1400)=>`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
@@ -182,10 +186,12 @@ function setNav(page){$$('#nav [data-page],#mmenu [data-page],#footer [data-page
 /* ================= SHARED COMPONENTS ================= */
 function pcard(p){
   const f=fById(p.factoryId);
+  const code=p.country||(f&&f.code);
+  const originName=p.country?countryName(p.country):(f?f.country.split(',')[0]:'');
   return `<a class="pcard" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}" style="--tint:${esc(p.tint||'#CFE3B5')}">
     <div class="parch">${photo(p.image,p.name,p.imageFb)}${p.discount?`<span class="badge">${+p.discount}% off</span>`:''}</div>
     <div class="pmeta"><h3>${esc(p.name)}</h3><p class="pshort">${esc(p.short)}</p>
-    <div class="prow">${f?`<span class="origin">${flag(f.code)}<span>${esc(f.country.split(',')[0])}</span></span>`:'<span></span>'}<span class="price">${priceHtml(p)}</span></div></div></a>`;
+    <div class="prow">${code?`<span class="origin">${flag(code)}<span>${esc(originName)}</span></span>`:'<span></span>'}<span class="price">${priceHtml(p)}</span></div></div></a>`;
 }
 const initials=n=>{const w=String(n).replace(/^Atlantik\s+/i,'Atlantik ').split(/\s+/).filter(Boolean);return ((w[0]||'?')[0]+((w[1]||'')[0]||'')).toUpperCase()};
 const agentLogo=a=>`<span class="alogo" style="--h:${hashStr(a.name)%360}">${a.logo?`<img src="${esc(a.logo)}" alt="">`:esc(initials(a.name))}</span>`;

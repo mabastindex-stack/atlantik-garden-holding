@@ -190,9 +190,10 @@ async function uploadImage(blob){
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
-    make:()=>({id:uid('p-'),name:'',category:'Fruit',factoryId:(state.factories[0]||{}).id||'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
+    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:(state.factories[0]||{}).id||'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
     fields:()=>[
       {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'select',req:1,opts:state.categories.map(c=>[c.name,c.name])},
+      {k:'country',l:'Country',t:'select',opts:[['','Not set'],...state.countries.map(c=>[c.code,c.name])]},
       {k:'factoryId',l:'Made at factory',t:'select',opts:[['','Not assigned'],...state.factories.map(f=>[f.id,f.country+', '+f.agency])]},
       {k:'unit',l:'Sold by',t:'select',opts:[['kg','Kilogram'],['ton','Tonne'],['L','Litre'],['box','Box']]},
       {k:'price',l:'Price',t:'number',step:'0.01',min:0},{k:'discount',l:'Discount (%)',t:'number',min:0,max:90},
@@ -201,7 +202,7 @@ const ENT={
       {k:'packaging',l:'Packaging',t:'text'},{k:'shelfLife',l:'Shelf life',t:'text'},{k:'moq',l:'Minimum order',t:'text'},{k:'season',l:'Season',t:'text'},
       {k:'tint',l:'Placeholder tint',t:'color'},
       {k:'image',l:'Product photo',t:'image',wide:1,hint:'Upload a photo to preview it here. For the live site, save it as assets/img/products/<id>.jpg.'}],
-    row:p=>rowHtml('products',p.id,photo(p.image,p.name),p.name,`${p.category}, ${money(p.price)} per ${UNIT[p.unit]||p.unit}${p.discount?`, ${p.discount}% off`:''}`,p.tint)},
+    row:p=>{const c=state.countries.find(x=>x.code===p.country);return rowHtml('products',p.id,photo(p.image,p.name),p.name,`${p.category}${c?', '+c.name:''}, ${money(p.price)} per ${UNIT[p.unit]||p.unit}${p.discount?`, ${p.discount}% off`:''}`,p.tint)}},
   factories:{one:'factory',title:'Factories',apiPath:'/factories',items:()=>state.factories,label:f=>f.country,
     make:()=>({id:uid('f-'),country:'',code:'ES',city:'',agency:'',director:'',since:'',employees:'',capacity:'',certs:[],description:'',image:''}),
     fields:()=>[

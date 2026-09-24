@@ -70,6 +70,7 @@ class ProductController extends Controller
             'slug' => $slugRule,
             'name' => ['required', 'string'],
             'category' => ['nullable', 'string'],
+            'country' => ['nullable', 'string', 'size:2'],
             'factoryId' => ['required', 'string', 'exists:factories,slug'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'unit' => ['nullable', 'string'],
