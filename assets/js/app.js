@@ -213,7 +213,7 @@ function agentCard(a,i){
 function fcard(f,i){
   const ps=productsOf(f.id),h=HUES[i%HUES.length],ag=state.agents.find(x=>x.code===f.code);
   return `<a class="fx2" href="#/factories/${esc(f.id)}" style="--h:${h};--i:${i}"><div class="fx2-media">${fphoto(f)}<span class="fx2-shade"></span>
-  <span class="fx2-flag"><svg viewBox="0 0 60 40" aria-hidden="true">${FLAGS[f.code]||''}</svg></span>
+  <span class="fx2-flag">${flag(f.code)}</span>
   <span class="fx2-stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="fxc${i}" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#fxc${i}" startOffset="0">${esc(f.agency)} • EST ${esc(f.since)} • </textPath></text></svg><b>${esc(f.code)}</b></span>
   <span class="fx2-go">${ico('arrow')}</span></div>
   <div class="fx2-body"><h3>${esc(String(f.country).split(',')[0])}</h3><p>${esc(f.city)}</p>
