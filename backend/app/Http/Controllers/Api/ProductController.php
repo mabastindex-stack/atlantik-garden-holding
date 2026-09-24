@@ -62,6 +62,10 @@ class ProductController extends Controller
 
     private function validated(Request $request, ?Product $product = null): array
     {
+        if ($request->input('factoryId') === '') {
+            $request->merge(['factoryId' => null]);
+        }
+
         $slugRule = $product
             ? ['sometimes', 'string', 'alpha_dash', 'unique:products,slug,'.$product->id]
             : ['required', 'string', 'alpha_dash', 'unique:products,slug'];
@@ -71,7 +75,7 @@ class ProductController extends Controller
             'name' => ['required', 'string'],
             'category' => ['nullable', 'string'],
             'country' => ['nullable', 'string', 'size:2'],
-            'factoryId' => ['required', 'string', 'exists:factories,slug'],
+            'factoryId' => ['nullable', 'string', 'exists:factories,slug'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'unit' => ['nullable', 'string'],
             'discount' => ['nullable', 'integer', 'min:0', 'max:100'],
@@ -90,8 +94,8 @@ class ProductController extends Controller
 
     private function mapColumns(array $data): array
     {
-        if (isset($data['factoryId'])) {
-            $data['factory_id'] = Factory::where('slug', $data['factoryId'])->firstOrFail()->id;
+        if (array_key_exists('factoryId', $data)) {
+            $data['factory_id'] = $data['factoryId'] ? Factory::where('slug', $data['factoryId'])->firstOrFail()->id : null;
             unset($data['factoryId']);
         }
         if (isset($data['shelfLife'])) {
@@ -104,10 +108,19 @@ class ProductController extends Controller
 
     private function withDefaults(array $data): array
     {
-        return array_merge([
+        $hasFactory = array_key_exists('factory_id', $data);
+        $factoryId = $data['factory_id'] ?? null;
+
+        $merged = array_merge([
             'category' => 'Fruit', 'price' => 0, 'unit' => 'kg', 'discount' => 0,
             'short' => '', 'description' => '', 'features' => [], 'packaging' => '',
             'shelf_life' => '', 'moq' => '', 'season' => '',
         ], array_filter($data, fn ($v) => $v !== null));
+
+        if ($hasFactory) {
+            $merged['factory_id'] = $factoryId;
+        }
+
+        return $merged;
     }
 }

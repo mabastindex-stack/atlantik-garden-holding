@@ -719,8 +719,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media (max-width:900px){.pgrid-wrap{grid-template-columns:minmax(0,1fr)}.pfilters{position:static;flex-direction:row;flex-wrap:wrap;gap:24px}}
 
 /* inputs */
-input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:.75em 1em;width:100%;transition:border-color .3s,box-shadow .3s}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--fern);box-shadow:0 0 0 4px color-mix(in srgb,var(--fern) 22%,transparent)}
+input,select,textarea,.xselect-btn{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:.75em 1em;width:100%;transition:border-color .3s,box-shadow .3s}
+input:focus,select:focus,textarea:focus,.xselect-btn:focus-visible{outline:none;border-color:var(--fern);box-shadow:0 0 0 4px color-mix(in srgb,var(--fern) 22%,transparent)}
 input[type=color]{padding:4px;height:46px;cursor:pointer}
 input[type=radio]{width:auto}
 textarea{resize:vertical;line-height:1.55}
@@ -973,6 +973,26 @@ textarea{resize:vertical;line-height:1.55}
 .img-status{font-size:.82rem;color:var(--ink-3);display:none;align-items:center;gap:6px}
 .imgpick.uploading .img-status{display:flex}
 .imgpick.uploading .imgbtns label,.imgpick.uploading .imgbtns button{pointer-events:none;opacity:.5}
+.xselect{position:relative}
+.xselect select{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.xselect-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;cursor:pointer}
+.xselect-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xselect-car{width:18px;height:18px;flex:none;color:var(--ink-3);transition:transform .3s var(--ease)}
+.xselect.open .xselect-btn{border-color:var(--fern);box-shadow:0 0 0 4px color-mix(in srgb,var(--fern) 22%,transparent)}
+.xselect.open .xselect-car{transform:rotate(180deg)}
+.xselect-panel{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:20;background:var(--surface);border-radius:16px;box-shadow:0 24px 48px -18px rgba(0,0,0,.38),inset 0 0 0 1px var(--line);opacity:0;visibility:hidden;transform:translateY(-8px) scale(.98);transform-origin:top center;transition:opacity .22s var(--ease),transform .22s var(--ease),visibility 0s .22s;pointer-events:none}
+.xselect.open .xselect-panel{opacity:1;visibility:visible;transform:none;transition:opacity .22s var(--ease),transform .22s var(--ease);pointer-events:auto}
+.xselect-search{position:relative;padding:8px 8px 4px}
+.xselect-search .ico{position:absolute;left:20px;top:50%;translate:0 -50%;width:16px;height:16px;color:var(--ink-3);pointer-events:none}
+.xselect-search input{padding:.55em .8em .55em 2.3em;border-radius:10px;font-size:.9rem}
+.xselect-list{list-style:none;margin:0;padding:6px;max-height:236px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--ink) 22%,transparent) transparent}
+.xselect-list::-webkit-scrollbar{width:8px}
+.xselect-list::-webkit-scrollbar-track{background:transparent}
+.xselect-list::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--ink) 18%,transparent);border-radius:99px}
+.xselect-list::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--ink) 32%,transparent)}
+.xselect-list li{padding:.6em .85em;border-radius:10px;font-size:.94rem;cursor:pointer;transition:background-color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xselect-list li:hover{background:color-mix(in srgb,var(--fern) 14%,transparent)}
+.xselect-list li.sel{background:var(--fern-l);color:var(--btn);font-weight:600}
 .confirm{padding:clamp(26px,4vw,40px);text-align:center}
 .confirm h2{font-size:1.6rem;margin-bottom:10px}
 .confirm p{color:var(--ink-2);margin-bottom:24px}

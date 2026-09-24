@@ -52,7 +52,9 @@ const I={
   lock:'<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
   eyeoff:'<path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a15.6 15.6 0 0 1-3.2 4.1M6.2 6.2A15.7 15.7 0 0 0 2 12s3.5 7 10 7c1 0 2-.1 2.9-.4"/>',
-  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+  chev:'<path d="M6 9l6 6 6-6"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
@@ -122,6 +124,7 @@ function openSheet(html,{cls=''}={}){
   lastFocus=document.activeElement;
   ov().innerHTML=`<div class="scrim" data-act="close"></div><div class="sheet ${cls}" role="dialog" aria-modal="true" tabindex="-1">${html}</div>`;
   ov().setAttribute('aria-hidden','false');document.documentElement.classList.add('lock');sheetOpen=true;
+  xselectInitAll(ov());
   requestAnimationFrame(()=>{ov().classList.add('open');const s=$('.sheet',ov());if(s)s.focus({preventScroll:true})});
 }
 function closeSheet(){
@@ -142,12 +145,39 @@ function fieldHtml(f,val){
     case'textarea':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc(val)}</textarea>`;break;
     case'lines':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).join('\n'))}</textarea>`;break;
     case'pairs':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).map(o=>o[f.keys[0]]+' | '+o[f.keys[1]]).join('\n'))}</textarea>`;break;
-    case'select':ctl=`<select id="${id}" name="${f.k}">${f.opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(val)?' selected':''}>${esc(l)}</option>`).join('')}</select>`;break;
+    case'select':{
+      const optsHtml=f.opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(val)?' selected':''}>${esc(l)}</option>`).join('');
+      const searchable=f.opts.length>5;
+      ctl=`<div class="xselect">
+        <button type="button" class="xselect-btn" aria-haspopup="listbox"><span class="xselect-label"></span>${ico('chev','xselect-car')}</button>
+        <select id="${id}" name="${f.k}" tabindex="-1" aria-hidden="true">${optsHtml}</select>
+        <div class="xselect-panel" role="listbox">${searchable?`<div class="xselect-search">${ico('search')}<input type="text" placeholder="Search…" autocomplete="off" spellcheck="false"></div>`:''}<ul class="xselect-list"></ul></div>
+      </div>`;
+      break;
+    }
     case'color':ctl=`<input id="${id}" name="${f.k}" type="color" value="${esc(val||'#CFE3B5')}">`;break;
     case'image':ctl=`<div class="imgpick" data-k="${f.k}"><div class="imgprev">${val?`<img src="${esc(val)}" alt="">`:'<span>No image</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="img-clear">Remove</button><span class="img-status">Uploading…</span></div></div>`;break;
     default:ctl=`<input id="${id}" name="${f.k}" type="${f.t||'text'}" value="${esc(val)}"${f.step?` step="${f.step}"`:''}${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}${f.ph?` placeholder="${esc(f.ph)}"`:''}${f.list?` list="dl_${id}"`:''}${f.req?' required':''}>${f.list?`<datalist id="dl_${id}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:''}`;
   }
   return `<div class="field${f.wide?' wide':''}">${label}${ctl}${f.hint?`<small>${esc(f.hint)}</small>`:''}</div>`;
+}
+/* ================= CUSTOM SELECT ================= */
+function xselectSync(select){
+  const wrap=select.closest('.xselect');if(!wrap)return;
+  const list=wrap.querySelector('.xselect-list'),labelEl=wrap.querySelector('.xselect-label'),search=wrap.querySelector('.xselect-search input');
+  const opts=[...select.options];
+  list.innerHTML=opts.map(o=>`<li role="option" data-v="${esc(o.value)}"${o.selected?' aria-selected="true" class="sel"':''}>${esc(o.textContent)}</li>`).join('');
+  const cur=opts.find(o=>o.selected)||opts[0];
+  labelEl.textContent=cur?cur.textContent:'';
+  if(search)search.value='';
+}
+function xselectInitAll(root){$$('.xselect select',root).forEach(xselectSync)}
+function xselectClose(wrap){wrap.classList.remove('open')}
+function xselectOpen(wrap){
+  $$('.xselect.open').forEach(xselectClose);
+  wrap.classList.add('open');
+  const search=wrap.querySelector('.xselect-search input');
+  if(search){search.value='';$$('.xselect-list li',wrap).forEach(li=>li.style.display='');setTimeout(()=>search.focus(),10)}
 }
 function collect(form,fields,ctx){
   const out={},fd=new FormData(form);
@@ -190,11 +220,11 @@ async function uploadImage(blob){
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
-    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:(state.factories[0]||{}).id||'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
-    fields:()=>[
+    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
+    fields:(vals={})=>[
       {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'select',req:1,opts:state.categories.map(c=>[c.name,c.name])},
       {k:'country',l:'Country',t:'select',opts:[['','Not set'],...state.countries.map(c=>[c.code,c.name])]},
-      {k:'factoryId',l:'Made at factory',t:'select',opts:[['','Not assigned'],...state.factories.map(f=>[f.id,f.country+', '+f.agency])]},
+      {k:'factoryId',l:'Made at factory',t:'select',opts:[['','Not assigned'],...state.factories.filter(f=>!vals.country||f.code===vals.country||f.id===vals.factoryId).map(f=>[f.id,f.country+', '+f.agency])],hint:'Filtered to factories in the selected country.'},
       {k:'unit',l:'Sold by',t:'select',opts:[['kg','Kilogram'],['ton','Tonne'],['L','Litre'],['box','Box']]},
       {k:'price',l:'Price',t:'number',step:'0.01',min:0},{k:'discount',l:'Discount (%)',t:'number',min:0,max:90},
       {k:'short',l:'Short line',t:'text',wide:1},{k:'description',l:'Description',t:'textarea',rows:4,wide:1},
@@ -206,7 +236,7 @@ const ENT={
   factories:{one:'factory',title:'Factories',apiPath:'/factories',items:()=>state.factories,label:f=>f.country,
     make:()=>({id:uid('f-'),country:'',code:'ES',city:'',agency:'',director:'',since:'',employees:'',capacity:'',certs:[],description:'',image:''}),
     fields:()=>[
-      {k:'country',l:'Country name',t:'text',req:1},{k:'code',l:'Flag',t:'select',opts:state.countries.map(c=>[c.code,c.name])},
+      {k:'code',l:'Country',t:'select',req:1,opts:state.countries.map(c=>[c.code,c.name])},
       {k:'agency',l:'Agency name',t:'text',req:1},{k:'director',l:'Director',t:'text'},
       {k:'city',l:'City or region',t:'text'},{k:'since',l:'Established (year)',t:'text'},
       {k:'employees',l:'Team size',t:'text'},{k:'capacity',l:'Capacity',t:'text',ph:'18,000 tonnes a year'},
@@ -324,7 +354,7 @@ function pageDashboard(tab){
 }
 function rerenderDash(){const m=$('#dmain');if(m){m.innerHTML=dashBody(current.arg)}}
 function openEntityForm(kind,id){
-  const E=ENT[kind],cur=id?E.items().find(x=>x.id===id):null,vals=cur?clone(cur):E.make(),fields=E.fields();
+  const E=ENT[kind],cur=id?E.items().find(x=>x.id===id):null,vals=cur?clone(cur):E.make(),fields=E.fields(vals);
   formCtx={img:{}};fields.filter(f=>f.t==='image').forEach(f=>formCtx.img[f.k]=vals[f.k]||'');
   openSheet(`<form class="fpanel" data-form="${kind}" data-id="${esc(id||'')}" novalidate><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button><h2>${cur?'Edit':'Add'} ${E.one}</h2><div class="fbody2">${fields.map(f=>fieldHtml(f,vals[f.k])).join('')}</div><footer><button type="button" class="btn btn-ghost" data-act="close">Cancel</button><button class="btn btn-primary" type="submit">Save ${E.one}</button></footer></form>`,{cls:'wide'});
 }
@@ -348,7 +378,22 @@ window.addEventListener('hashchange',()=>{if(isAdmin())renderAdmin()});
 /* ================= EVENTS ================= */
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');
-  if(!t){const a=e.target.closest('.mmenu a');if(a)document.body.classList.remove('menu-open');return}
+  if(!t){
+    const xbtn=e.target.closest('.xselect-btn');
+    if(xbtn){const wrap=xbtn.closest('.xselect');wrap.classList.contains('open')?xselectClose(wrap):xselectOpen(wrap);return}
+    const li=e.target.closest('.xselect-list li');
+    if(li){
+      const wrap=li.closest('.xselect'),select=wrap.querySelector('select');
+      select.value=li.dataset.v;
+      xselectSync(select);
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+      xselectClose(wrap);
+      return;
+    }
+    if(!e.target.closest('.xselect'))$$('.xselect.open').forEach(xselectClose);
+    const a=e.target.closest('.mmenu a');if(a)document.body.classList.remove('menu-open');
+    return;
+  }
   const act=t.dataset.act,d=t.dataset;
   switch(act){
     case'close':closeSheet();break;
@@ -369,8 +414,30 @@ document.addEventListener('click',e=>{
     case'retry':location.reload();break;
   }
 });
+document.addEventListener('input',e=>{
+  const s=e.target.closest('.xselect-search input');if(!s)return;
+  const wrap=s.closest('.xselect'),q=s.value.trim().toLowerCase();
+  $$('.xselect-list li',wrap).forEach(li=>{li.style.display=li.textContent.toLowerCase().includes(q)?'':'none'});
+});
 document.addEventListener('change',e=>{
-  const inp=e.target;if(inp.type!=='file')return;
+  const inp=e.target;
+  if(inp.tagName==='SELECT'){
+    if(inp.name==='country'){
+      const form=inp.closest('form[data-form="products"]');
+      if(form){
+        const fsel=form.querySelector('select[name="factoryId"]');
+        if(fsel){
+          const country=inp.value,cur=fsel.value;
+          const opts=[['','Not assigned'],...state.factories.filter(f=>!country||f.code===country).map(f=>[f.id,f.country+', '+f.agency])];
+          fsel.innerHTML=opts.map(([v,l])=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`).join('');
+          if(!opts.some(([v])=>v===cur))fsel.value='';
+          xselectSync(fsel);
+        }
+      }
+    }
+    return;
+  }
+  if(inp.type!=='file')return;
   const box=inp.closest('.imgpick'),file=inp.files&&inp.files[0];if(!box||!file)return;
   const k=box.dataset.k,max=/logo/.test(k)?420:/hero|aboutImage/.test(k)?1600:1000;
   readImage(file,max).then(({dataUrl,blob})=>{
@@ -442,7 +509,7 @@ document.addEventListener('submit',e=>{
     }).finally(()=>{if(btn)btn.disabled=false});
   }
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(sheetOpen)closeSheet();document.body.classList.remove('menu-open')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('.xselect.open')){$$('.xselect.open').forEach(xselectClose);return}if(sheetOpen)closeSheet();document.body.classList.remove('menu-open')}});
 document.addEventListener('error',e=>{
   const i=e.target;if(!i||i.tagName!=='IMG'||!i.hasAttribute('data-photo'))return;
   i.remove();
