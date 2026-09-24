@@ -158,9 +158,26 @@ function collect(form,fields,ctx){
 function readImage(file,max){
   return new Promise((res,rej)=>{
     const fr=new FileReader();
-    fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL(file.type==='image/png'?'image/png':'image/jpeg',.82))};im.onerror=rej;im.src=fr.result};
+    fr.onload=()=>{const im=new Image();im.onload=()=>{
+      const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      const type=file.type==='image/png'?'image/png':'image/jpeg';
+      c.toBlob(blob=>res({dataUrl:c.toDataURL(type,.82),blob}),type,.82);
+    };im.onerror=rej;im.src=fr.result};
     fr.onerror=rej;fr.readAsDataURL(file);
   });
+}
+async function uploadImage(blob){
+  const token=getToken();
+  const fd=new FormData();fd.append('image',blob,'photo.jpg');
+  const headers={Accept:'application/json'};if(token)headers.Authorization='Bearer '+token;
+  let res;
+  try{res=await fetch(API_BASE+'/upload',{method:'POST',headers,body:fd})}
+  catch(e){throw Object.assign(new Error('Could not reach the server'),{network:true})}
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||!data.url)throw new Error(data.message||'Upload failed');
+  return data.url;
 }
 
 /* ================= DASHBOARD DATA MODEL ================= */
@@ -341,7 +358,11 @@ document.addEventListener('change',e=>{
   const inp=e.target;if(inp.type!=='file')return;
   const box=inp.closest('.imgpick'),file=inp.files&&inp.files[0];if(!box||!file)return;
   const k=box.dataset.k,max=/logo/.test(k)?420:/hero|aboutImage/.test(k)?1600:1000;
-  readImage(file,max).then(url=>{formCtx.img[k]=url;$('.imgprev',box).innerHTML=`<img src="${esc(url)}" alt="">`}).catch(()=>toast('That image could not be read'));
+  readImage(file,max).then(({dataUrl,blob})=>{
+    $('.imgprev',box).innerHTML=`<img src="${esc(dataUrl)}" alt="">`;
+    formCtx.uploading=(formCtx.uploading||0)+1;
+    uploadImage(blob).then(url=>{formCtx.img[k]=url}).catch(()=>toast('Image upload failed. Try again.')).finally(()=>{formCtx.uploading--});
+  }).catch(()=>toast('That image could not be read'));
 });
 document.addEventListener('submit',e=>{
   const form=e.target;e.preventDefault();
@@ -361,6 +382,7 @@ document.addEventListener('submit',e=>{
     return;
   }
   if(form.id==='siteForm'){
+    if(formCtx.uploading>0){toast('Please wait for the image to finish uploading');return}
     const v=collect(form,SITE_FIELDS,formCtx);
     if(!v['company.name']){toast('Company name is required');return}
     const payload={company:{},socials:{},agent:{}};
@@ -386,6 +408,7 @@ document.addEventListener('submit',e=>{
     return;
   }
   if(form.dataset.form){
+    if(formCtx.uploading>0){toast('Please wait for the image to finish uploading');return}
     const kind=form.dataset.form,id=form.dataset.id,E=ENT[kind],fields=E.fields(),v=collect(form,fields,formCtx);
     if(kind==='factories'&&!v.country)v.country=COUNTRIES[v.code]||'';
     const bad=fields.find(f=>f.req&&!v[f.k]);
