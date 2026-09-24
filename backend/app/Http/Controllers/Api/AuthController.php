@@ -25,6 +25,9 @@ class AuthController extends Controller
             ]);
         }
 
+        // Only one active session is allowed: signing in anywhere else signs out every other device.
+        $user->tokens()->delete();
+
         $token = $user->createToken($request->userAgent() ?? 'api')->plainTextToken;
 
         return response()->json([

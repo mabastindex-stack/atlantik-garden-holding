@@ -118,7 +118,7 @@ body.menu-open .burger .i-x{opacity:1;transform:none}
   .burger{display:grid}
   .brand-t small{display:none}
   .ctl .theme-switch{display:none}
-  .mmenu{display:flex;position:fixed;inset:0;z-index:55;flex-direction:column;justify-content:flex-start;gap:2px;padding:96px var(--gut) 40px;background:var(--bg);opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
+  .mmenu{display:flex;position:fixed;inset:0;z-index:55;flex-direction:column;justify-content:flex-start;gap:2px;padding:96px var(--gut) 40px;background:var(--bg);opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s;overflow-y:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
   body.menu-open .mmenu{opacity:1;visibility:visible;transition-delay:0s}
   .mmenu a{font-family:var(--f-display);font-size:clamp(2rem,9vw,2.8rem);font-weight:300;padding:.2em 0;color:var(--ink-2);opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .6s var(--ease),color .3s}
   .mmenu a[aria-current]{color:var(--ink)}

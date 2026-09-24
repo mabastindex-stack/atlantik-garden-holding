@@ -81,8 +81,8 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show'
 /* ================= AUTH + API ================= */
 const API_BASE=/^(atlantikgh\.com|www\.atlantikgh\.com)$/.test(location.hostname)?'https://api.atlantikgh.com/api':'http://127.0.0.1:8000/api';
 const TOKENKEY='agh.token';
-function getToken(){try{return localStorage.getItem(TOKENKEY)||sessionStorage.getItem(TOKENKEY)}catch(e){return null}}
-function saveToken(token,remember){try{if(remember)localStorage.setItem(TOKENKEY,token);else sessionStorage.setItem(TOKENKEY,token)}catch(e){}}
+function getToken(){try{return sessionStorage.getItem(TOKENKEY)}catch(e){return null}}
+function saveToken(token){try{sessionStorage.setItem(TOKENKEY,token)}catch(e){}}
 function clearToken(){try{localStorage.removeItem(TOKENKEY);sessionStorage.removeItem(TOKENKEY)}catch(e){}}
 function isAdmin(){return !!getToken()}
 async function apiFetch(path,{method='GET',json}={}){
@@ -349,7 +349,7 @@ document.addEventListener('submit',e=>{
     const d=Object.fromEntries(new FormData(form)),btn=$('.lf-submit',form);
     if(btn)btn.disabled=true;
     apiFetch('/login',{method:'POST',json:{email:d.email,password:d.password}}).then(res=>{
-      saveToken(res.token,true);
+      saveToken(res.token);
       location.hash='overview';
       renderAdmin();
       toast('Welcome back');
