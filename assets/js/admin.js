@@ -233,10 +233,10 @@ const ENT={
     fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
     row:c=>{const n=state.products.filter(p=>p.category===c.name).length;return rowHtml('categories',c.id,ico('note'),c.name,`${n} product${n===1?'':'s'}`)}},
   countries:{one:'country',title:'Countries',apiPath:'/countries',items:()=>state.countries,label:c=>c.name,
-    make:()=>({id:'',name:'',code:'',flagImage:''}),
-    fields:()=>[{k:'name',l:'Country name',t:'text',req:1},{k:'code',l:'2-letter code',t:'text',req:1,ph:'e.g. FR'},
-      {k:'flagImage',l:'Flag image (used if the code has no built-in flag)',t:'image',wide:1}],
-    row:c=>{const n=state.factories.filter(f=>f.code===c.code).length+state.agents.filter(a=>a.code===c.code).length;return rowHtml('countries',c.id,flag(c.code),c.name,`${c.code} · ${n} in use`)}}
+    make:()=>({id:'',name:'',flagImage:''}),
+    fields:()=>[{k:'name',l:'Country name',t:'text',req:1,wide:1},
+      {k:'flagImage',l:'Flag image',t:'image',wide:1,hint:'Upload the country’s flag. This is what shows up everywhere the country is picked.'}],
+    row:c=>{const n=state.factories.filter(f=>f.code===c.code).length+state.agents.filter(a=>a.code===c.code).length;return rowHtml('countries',c.id,flag(c.code),c.name,`${n} item${n===1?'':'s'} using this country`)}}
 };
 const SITE=[
   ['Company',[
