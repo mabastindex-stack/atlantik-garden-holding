@@ -138,7 +138,7 @@ function fieldHtml(f,val){
     case'pairs':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).map(o=>o[f.keys[0]]+' | '+o[f.keys[1]]).join('\n'))}</textarea>`;break;
     case'select':ctl=`<select id="${id}" name="${f.k}">${f.opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(val)?' selected':''}>${esc(l)}</option>`).join('')}</select>`;break;
     case'color':ctl=`<input id="${id}" name="${f.k}" type="color" value="${esc(val||'#CFE3B5')}">`;break;
-    case'image':ctl=`<div class="imgpick" data-k="${f.k}"><div class="imgprev">${val?`<img src="${esc(val)}" alt="">`:'<span>No image</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="img-clear">Remove</button></div></div>`;break;
+    case'image':ctl=`<div class="imgpick" data-k="${f.k}"><div class="imgprev">${val?`<img src="${esc(val)}" alt="">`:'<span>No image</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="img-clear">Remove</button><span class="img-status">Uploading…</span></div></div>`;break;
     default:ctl=`<input id="${id}" name="${f.k}" type="${f.t||'text'}" value="${esc(val)}"${f.step?` step="${f.step}"`:''}${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}${f.ph?` placeholder="${esc(f.ph)}"`:''}${f.list?` list="dl_${id}"`:''}${f.req?' required':''}>${f.list?`<datalist id="dl_${id}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:''}`;
   }
   return `<div class="field${f.wide?' wide':''}">${label}${ctl}${f.hint?`<small>${esc(f.hint)}</small>`:''}</div>`;
@@ -360,8 +360,9 @@ document.addEventListener('change',e=>{
   const k=box.dataset.k,max=/logo/.test(k)?420:/hero|aboutImage/.test(k)?1600:1000;
   readImage(file,max).then(({dataUrl,blob})=>{
     $('.imgprev',box).innerHTML=`<img src="${esc(dataUrl)}" alt="">`;
+    box.classList.add('uploading');
     formCtx.uploading=(formCtx.uploading||0)+1;
-    uploadImage(blob).then(url=>{formCtx.img[k]=url}).catch(()=>toast('Image upload failed. Try again.')).finally(()=>{formCtx.uploading--});
+    uploadImage(blob).then(url=>{formCtx.img[k]=url}).catch(()=>toast('Image upload failed. Try again.')).finally(()=>{formCtx.uploading--;box.classList.remove('uploading')});
   }).catch(()=>toast('That image could not be read'));
 });
 document.addEventListener('submit',e=>{
