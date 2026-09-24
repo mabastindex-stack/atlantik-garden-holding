@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\FactoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SettingController;
@@ -16,6 +18,8 @@ Route::apiResource('factories', FactoryController::class)->only(['index', 'show'
 Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 Route::apiResource('agents', AgentController::class)->only(['index', 'show']);
 Route::apiResource('announcements', AnnouncementController::class)->only(['index', 'show']);
+Route::apiResource('categories', CategoryController::class)->only(['index']);
+Route::apiResource('countries', CountryController::class)->only(['index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -28,4 +32,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('products', ProductController::class)->except(['index', 'show']);
     Route::apiResource('agents', AgentController::class)->except(['index', 'show']);
     Route::apiResource('announcements', AnnouncementController::class)->except(['index', 'show']);
+    Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+    Route::apiResource('countries', CountryController::class)->except(['index', 'show']);
 });

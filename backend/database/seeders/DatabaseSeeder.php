@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Agent;
 use App\Models\Announcement;
+use App\Models\Category;
+use App\Models\Country;
 use App\Models\Factory;
 use App\Models\Product;
 use App\Models\Setting;
@@ -199,6 +201,22 @@ class DatabaseSeeder extends Seeder
         ];
         foreach ($announcements as $n) {
             Announcement::create($n);
+        }
+
+        Category::query()->delete();
+        foreach (['Fruit', 'Nuts', 'Oils', 'Herbs', 'Grains', 'Vegetables'] as $name) {
+            Category::create(['slug' => \Illuminate\Support\Str::slug($name), 'name' => $name]);
+        }
+
+        Country::query()->delete();
+        $countries = [
+            'ES' => 'Spain', 'IT' => 'Italy', 'FR' => 'France', 'DE' => 'Germany',
+            'NL' => 'Netherlands', 'PT' => 'Portugal', 'GR' => 'Greece', 'TR' => 'Türkiye',
+            'IQ' => 'Iraq', 'KU' => 'Kurdistan Region', 'EG' => 'Egypt', 'MA' => 'Morocco',
+            'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia', 'IN' => 'India', 'BR' => 'Brazil',
+        ];
+        foreach ($countries as $code => $name) {
+            Country::create(['slug' => \Illuminate\Support\Str::slug($name), 'name' => $name, 'code' => $code]);
         }
     }
 }

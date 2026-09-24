@@ -23,13 +23,19 @@ const FLAGS={
   IN:bands('#FF9933','#fff','#138808')+`<circle cx="30" cy="20" r="4.6" fill="none" stroke="#000080" stroke-width="1"/>`,
   BR:`<rect width="60" height="40" fill="#009C3B"/><path d="M30 4L56 20L30 36L4 20z" fill="#FFDF00"/><circle cx="30" cy="20" r="8" fill="#002776"/>`
 };
-const flag=code=>`<span class="flag"><svg viewBox="0 0 60 40" role="img" aria-label="${esc(COUNTRIES[code]||'Flag')}">${FLAGS[code]||'<rect width="60" height="40" fill="#8FAFA8"/><circle cx="30" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2"/><path d="M18 20h24M30 8c-6 8-6 16 0 24M30 8c6 8 6 16 0 24" stroke="#fff" stroke-width="1.6" fill="none"/>'}</svg></span>`;
+function flag(code){
+  const c=(state.countries||[]).find(x=>x.code===code);
+  const label=esc((c&&c.name)||COUNTRIES[code]||'Flag');
+  if(!FLAGS[code]&&c&&c.flagImage)return `<span class="flag"><img src="${esc(c.flagImage)}" alt="${label}"></span>`;
+  return `<span class="flag"><svg viewBox="0 0 60 40" role="img" aria-label="${label}">${FLAGS[code]||'<rect width="60" height="40" fill="#8FAFA8"/><circle cx="30" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2"/><path d="M18 20h24M30 8c-6 8-6 16 0 24M30 8c6 8 6 16 0 24" stroke="#fff" stroke-width="1.6" fill="none"/>'}</svg></span>`;
+}
 
 /* ================= HELPERS ================= */
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clone=o=>JSON.parse(JSON.stringify(o));
 const uid=p=>p+Math.random().toString(36).slice(2,8);
+const errMsg=(err,fallback)=>{const errs=err.data&&err.data.errors;if(errs){const first=Object.values(errs)[0];if(first&&first[0])return first[0]}return (err.data&&err.data.message)||fallback};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 const getPath=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
 const setPath=(o,p,v)=>{const ks=p.split('.');const l=ks.pop();const t=ks.reduce((a,k)=>a[k]=a[k]||{},o);t[l]=v};
@@ -53,7 +59,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],me:null};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],categories:[],countries:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -181,13 +187,12 @@ async function uploadImage(blob){
 }
 
 /* ================= DASHBOARD DATA MODEL ================= */
-const countryOpts=()=>Object.entries(COUNTRIES);
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
     make:()=>({id:uid('p-'),name:'',category:'Fruit',factoryId:(state.factories[0]||{}).id||'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
     fields:()=>[
-      {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'text',req:1,list:[...new Set(state.products.map(p=>p.category))]},
+      {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'select',req:1,opts:state.categories.map(c=>[c.name,c.name])},
       {k:'factoryId',l:'Made at factory',t:'select',opts:[['','Not assigned'],...state.factories.map(f=>[f.id,f.country+', '+f.agency])]},
       {k:'unit',l:'Sold by',t:'select',opts:[['kg','Kilogram'],['ton','Tonne'],['L','Litre'],['box','Box']]},
       {k:'price',l:'Price',t:'number',step:'0.01',min:0},{k:'discount',l:'Discount (%)',t:'number',min:0,max:90},
@@ -200,7 +205,7 @@ const ENT={
   factories:{one:'factory',title:'Factories',apiPath:'/factories',items:()=>state.factories,label:f=>f.country,
     make:()=>({id:uid('f-'),country:'',code:'ES',city:'',agency:'',director:'',since:'',employees:'',capacity:'',certs:[],description:'',image:''}),
     fields:()=>[
-      {k:'country',l:'Country name',t:'text',req:1},{k:'code',l:'Flag',t:'select',opts:countryOpts()},
+      {k:'country',l:'Country name',t:'text',req:1},{k:'code',l:'Flag',t:'select',opts:state.countries.map(c=>[c.code,c.name])},
       {k:'agency',l:'Agency name',t:'text',req:1},{k:'director',l:'Director',t:'text'},
       {k:'city',l:'City or region',t:'text'},{k:'since',l:'Established (year)',t:'text'},
       {k:'employees',l:'Team size',t:'text'},{k:'capacity',l:'Capacity',t:'text',ph:'18,000 tonnes a year'},
@@ -212,7 +217,7 @@ const ENT={
     make:()=>({id:uid('a-'),name:'',contact:'',role:'',code:'KU',city:'',territory:'',phone:'',whatsapp:'',email:'',hours:'',logo:''}),
     fields:()=>[
       {k:'name',l:'Agent or sales centre name',t:'text',req:1,wide:1},{k:'contact',l:'Contact person',t:'text'},{k:'role',l:'Role',t:'text'},
-      {k:'code',l:'Country flag',t:'select',opts:countryOpts()},{k:'city',l:'City',t:'text'},
+      {k:'code',l:'Country flag',t:'select',opts:state.countries.map(c=>[c.code,c.name])},{k:'city',l:'City',t:'text'},
       {k:'territory',l:'Territory covered',t:'text',wide:1},{k:'phone',l:'Phone',t:'tel',req:1},{k:'whatsapp',l:'WhatsApp number',t:'tel'},
       {k:'email',l:'Email',t:'email'},{k:'hours',l:'Opening hours',t:'text'},{k:'logo',l:'Logo',t:'image',wide:1}],
     row:a=>rowHtml('agents',a.id,flag(a.code),a.name,`${a.city}, ${a.phone}`)},
@@ -222,7 +227,16 @@ const ENT={
       {k:'type',l:'Type',t:'select',opts:[['offer','Offer or discount'],['notice','Notice'],['note','Note']]},{k:'discount',l:'Discount (%)',t:'number',min:0,max:90},
       {k:'title',l:'Title',t:'text',req:1,wide:1},{k:'body',l:'Details',t:'textarea',rows:4,wide:1},
       {k:'until',l:'Ends on',t:'date',hint:'Leave empty for no end date.'}],
-    row:a=>rowHtml('notices',a.id,ico(a.type==='offer'?'bell':'note'),a.title,`${a.type}${a.discount?`, ${a.discount}% off`:''}${a.until?`, ends ${a.until}`:''}`)}
+    row:a=>rowHtml('notices',a.id,ico(a.type==='offer'?'bell':'note'),a.title,`${a.type}${a.discount?`, ${a.discount}% off`:''}${a.until?`, ends ${a.until}`:''}`)},
+  categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
+    make:()=>({id:'',name:''}),
+    fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
+    row:c=>{const n=state.products.filter(p=>p.category===c.name).length;return rowHtml('categories',c.id,ico('note'),c.name,`${n} product${n===1?'':'s'}`)}},
+  countries:{one:'country',title:'Countries',apiPath:'/countries',items:()=>state.countries,label:c=>c.name,
+    make:()=>({id:'',name:'',code:'',flagImage:''}),
+    fields:()=>[{k:'name',l:'Country name',t:'text',req:1},{k:'code',l:'2-letter code',t:'text',req:1,ph:'e.g. FR'},
+      {k:'flagImage',l:'Flag image (used if the code has no built-in flag)',t:'image',wide:1}],
+    row:c=>{const n=state.factories.filter(f=>f.code===c.code).length+state.agents.filter(a=>a.code===c.code).length;return rowHtml('countries',c.id,flag(c.code),c.name,`${c.code} · ${n} in use`)}}
 };
 const SITE=[
   ['Company',[
@@ -264,7 +278,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['site','Site and profile'],['account','Account settings']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -348,7 +362,7 @@ document.addEventListener('click',e=>{
       apiFetch(`${E.apiPath}/${d.id}`,{method:'DELETE'}).then(()=>{
         const arr=E.items();arr.splice(arr.findIndex(x=>x.id===d.id),1);
         rerenderDash();toast('Deleted');
-      }).catch(err=>toast(err.network?'Could not reach the server':'Could not delete. Try again.'));
+      }).catch(err=>toast(err.network?'Could not reach the server':errMsg(err,'Could not delete. Try again.')));
     });break}
     case'img-clear':{const box=t.closest('.imgpick');if(box){formCtx.img[box.dataset.k]='';$('.imgprev',box).innerHTML='<span>No image</span>'}break}
     case'retry':location.reload();break;
@@ -404,14 +418,14 @@ document.addEventListener('submit',e=>{
       state.me=res;form.current_password.value='';form.new_password.value='';
       toast('Account updated');
     }).catch(err=>{
-      toast(err.network?'Could not reach the server':(err.data&&err.data.message)||'Could not save changes');
+      toast(err.network?'Could not reach the server':errMsg(err,'Could not save changes'));
     }).finally(()=>{if(btn)btn.disabled=false});
     return;
   }
   if(form.dataset.form){
     if(formCtx.uploading>0){toast('Please wait for the image to finish uploading');return}
     const kind=form.dataset.form,id=form.dataset.id,E=ENT[kind],fields=E.fields(),v=collect(form,fields,formCtx);
-    if(kind==='factories'&&!v.country)v.country=COUNTRIES[v.code]||'';
+    if(kind==='factories'&&!v.country){const c=state.countries.find(x=>x.code===v.code);v.country=c?c.name:''}
     const bad=fields.find(f=>f.req&&!v[f.k]);
     if(bad){toast(bad.l+' is required');const el=form.querySelector(`[name="${bad.k}"]`);if(el)el.focus();return}
     const payload=Object.assign({},v);
@@ -423,7 +437,7 @@ document.addEventListener('submit',e=>{
       if(id){const i=list.findIndex(x=>x.id===id);list[i]=item}else list.push(item);
       closeSheet();rerenderDash();toast(id?'Changes saved':E.one.charAt(0).toUpperCase()+E.one.slice(1)+' added');
     }).catch(err=>{
-      toast(err.network?'Could not reach the server':(err.data&&err.data.message)||'Could not save changes');
+      toast(err.network?'Could not reach the server':errMsg(err,'Could not save changes'));
     }).finally(()=>{if(btn)btn.disabled=false});
   }
 });
@@ -443,16 +457,16 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={...cached,me:null};
+    state={categories:[],countries:[],...cached,me:null};
     initTheme();renderAdmin();
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),
+    const [settings,factories,products,agents,announcements,categories,countries]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/categories'),apiFetch('/countries'),
     ]);
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,categories:categories.data,countries:countries.data};
     state={...fresh,me:state.me};saveCache(fresh);
     if(!cached){initTheme();renderAdmin()}
   }catch(e){if(!cached)bootError()}
