@@ -37,7 +37,7 @@ const setPath=(o,p,v)=>{const ks=p.split('.');const l=ks.pop();const t=ks.reduce
 /* ================= ICONS ================= */
 const I={
   arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',left:'<path d="M15 6l-6 6 6 6"/>',
-  close:'<path d="M6 6l12 12M18 6L6 18"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>',menu:'<path d="M4 8h16M4 16h16"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
@@ -276,9 +276,17 @@ function dashBody(tab){
 function pageDashboard(tab){
   tab=DTABS.some(t=>t[0]===tab)?tab:'overview';current.arg=tab;
   const c=S().company;
-  return `<div class="wrap" style="display:flex;align-items:center;justify-content:space-between;padding-block:22px;gap:16px;flex-wrap:wrap">
+  return `<header class="nav scrolled"><div class="wrap nav-in">
     <a class="brand" href="index.html" aria-label="${esc(c.name)}, view site">${brandHtml(c)}</a>
-    <button class="theme-switch" data-act="theme" role="switch" aria-checked="false" aria-label="Dark mode"><span class="ts-knob"></span>${ico('sun','i-sun')}${ico('moon','i-moon')}</button>
+    <div class="ctl">
+      <button class="theme-switch" data-act="theme" role="switch" aria-checked="false" aria-label="Dark mode"><span class="ts-knob"></span>${ico('sun','i-sun')}${ico('moon','i-moon')}</button>
+      <button class="icon-btn burger" data-act="menu" aria-label="Open menu" aria-expanded="false">${ico('menu','i-m')}${ico('close','i-x')}</button>
+    </div>
+  </div></header>
+  <div class="mmenu">
+    <button class="theme-switch" data-act="theme" role="switch" aria-checked="false" aria-label="Dark mode" style="--i:0"><span class="ts-knob"></span>${ico('sun','i-sun')}${ico('moon','i-moon')}</button>
+    ${DTABS.map(([k,l],i)=>`<a href="#${k}"${k===tab?' aria-current="page"':''} style="--i:${i+1}">${l}</a>`).join('')}
+    <button class="btn btn-ghost dlogout" type="button" data-act="logout" style="--i:${DTABS.length+1}">${ico('logout')}Log out</button>
   </div>
   <div class="wrap dash"><aside class="dside"><h1>Dashboard</h1><nav class="dtabs" aria-label="Dashboard">${DTABS.map(([k,l])=>`<a href="#${k}"${k===tab?' aria-current="page"':''}>${l}</a>`).join('')}</nav><div class="dside-foot"><p class="dnote">Changes save straight to the database.</p><button class="btn btn-ghost btn-sm dlogout" type="button" data-act="logout">${ico('logout')}Log out</button></div></aside><section class="dmain" id="dmain">${dashBody(tab)}</section></div>`;
 }
@@ -292,6 +300,7 @@ function openEntityForm(kind,id){
 /* ================= ADMIN ROUTER ================= */
 function renderAdmin(){
   document.body.classList.add('hide-foot');
+  document.body.classList.remove('menu-open');
   if(!isAdmin()){
     $('#main').innerHTML=pageLogin();
     document.title='Sign in | '+(S().company.name||'Admin');
@@ -306,12 +315,14 @@ window.addEventListener('hashchange',()=>{if(isAdmin())renderAdmin()});
 
 /* ================= EVENTS ================= */
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-act]');if(!t)return;
+  const t=e.target.closest('[data-act]');
+  if(!t){const a=e.target.closest('.mmenu a');if(a)document.body.classList.remove('menu-open');return}
   const act=t.dataset.act,d=t.dataset;
   switch(act){
     case'close':closeSheet();break;
     case'yes':{const fn=pendingYes;pendingYes=null;closeSheet();if(fn)fn();break}
-    case'theme':toggleTheme(t);break;
+    case'theme':toggleTheme(t);document.body.classList.remove('menu-open');break;
+    case'menu':{const o=document.body.classList.toggle('menu-open');t.setAttribute('aria-expanded',String(o));break}
     case'togglepass':{const wrap=t.closest('.lf-passwrap'),inp=wrap&&wrap.querySelector('input');if(inp){const show=inp.type==='password';inp.type=show?'text':'password';t.innerHTML=show?ico('eyeoff'):ico('eye');t.setAttribute('aria-label',show?'Hide password':'Show password')}break}
     case'logout':logout();break;
     case'add':openEntityForm(d.kind);break;
@@ -392,7 +403,7 @@ document.addEventListener('submit',e=>{
     }).finally(()=>{if(btn)btn.disabled=false});
   }
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheetOpen)closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(sheetOpen)closeSheet();document.body.classList.remove('menu-open')}});
 document.addEventListener('error',e=>{
   const i=e.target;if(!i||i.tagName!=='IMG'||!i.hasAttribute('data-photo'))return;
   i.remove();

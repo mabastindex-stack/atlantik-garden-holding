@@ -976,10 +976,9 @@ textarea{resize:vertical;line-height:1.55}
 textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;min-height:170px}
 @media (max-width:920px){
   .dash{grid-template-columns:1fr}
-  .dside{position:static}
-  .dtabs{grid-auto-flow:column;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-  .dtabs a{white-space:nowrap}
-  .dnote{display:none}
+  .dside{display:none}
+  .mmenu .dlogout{align-self:center;margin-top:16px;opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .6s var(--ease)}
+  body.menu-open .mmenu .dlogout{opacity:1;transform:none;transition-delay:calc(.05s + var(--i)*.05s)}
 }
 @media (max-width:620px){
   .fgrid2,.fpanel .fbody2{grid-template-columns:1fr}
