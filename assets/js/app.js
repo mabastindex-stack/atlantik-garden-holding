@@ -397,13 +397,15 @@ function valuesHtml(){
   return `<section class="sec wrap"><div class="vals-grid" data-stagger>${items.map(([i,t,d])=>`<div class="val" data-reveal><div class="st-ico">${ico(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></section>`;
 }
 
+const DEFAULT_FAQ=[
+  ['General','How do I place an order?','Contact your regional agent directly, or write to us and we’ll connect you with one.'],
+  ['General','Do you sell direct to consumers?','No. We supply through authorised agents and directly to registered buyers.'],
+  ['Shipping','What are your minimum order quantities?','Each product page lists its own MOQ, usually a pallet or a container depending on the item.'],
+  ['Shipping','Do you ship worldwide?','Our factories in Spain, Türkiye, the Kurdistan Region and Egypt ship to most regions through our agent network.'],
+];
 function faqHtml(){
-  const FAQ=[
-    ['General','How do I place an order?','Contact your regional agent directly, or write to us and we’ll connect you with one.'],
-    ['General','Do you sell direct to consumers?','No. We supply through authorised agents and directly to registered buyers.'],
-    ['Shipping','What are your minimum order quantities?','Each product page lists its own MOQ, usually a pallet or a container depending on the item.'],
-    ['Shipping','Do you ship worldwide?','Our factories in Spain, Türkiye, the Kurdistan Region and Egypt ship to most regions through our agent network.'],
-  ];
+  const saved=S().company.faqs;
+  const FAQ=(saved&&saved.length)?saved.map(f=>[f.cat||'General',f.q,f.a]):DEFAULT_FAQ;
   const cats=['All',...new Set(FAQ.map(f=>f[0]))];
   return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>Frequently asked</h2></div>
   <div class="fq-tabs" id="faqTabs" data-reveal>${cats.map((c,i)=>`<button class="chip" data-act="fqtab" data-v="${esc(c)}" aria-pressed="${i===0}">${esc(c)}</button>`).join('')}</div>
@@ -559,6 +561,7 @@ function initAgentsPage(){
 function pageAbout(){
   const c=S().company,a=S().agent;
   return `<section class="wrap page-head" data-reveal><h1>${esc(c.name)}</h1><p class="lead">${esc(c.tagline)}</p></section>
+  ${c.aboutImage?`<section class="wrap"><div class="ab-photo" data-reveal><img src="${esc(c.aboutImage)}" alt=""></div></section>`:''}
   <section class="wrap"><p>${paras(c.story)}</p>
   ${(c.milestones||[]).length?`<div class="sec-head" style="margin-top:40px"><h2>Milestones</h2></div><ul class="steps" data-stagger>${c.milestones.map(m=>`<li data-reveal><h3>${esc(m.y)}</h3><p>${esc(m.t)}</p></li>`).join('')}</ul>`:''}</section>
   ${a&&a.name?`<section class="wrap ab-ag"><div class="ab-ag-top">${agentLogo({name:a.name,logo:a.logo})}<div><span class="ab-ag-kick">Authorised agent for our home market</span><h2>${esc(a.name)}</h2><p>${esc(a.tagline)}</p></div>
@@ -738,8 +741,9 @@ async function boot(){
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
     const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,countries:countries.data};
+    const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state=fresh;saveCache(fresh);
-    if(!cached){initTheme();renderChrome();route(true)}
+    if(changed){initTheme();renderChrome();route(true)}
   }catch(e){if(!cached)bootError()}
 }
 

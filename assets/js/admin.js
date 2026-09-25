@@ -145,6 +145,7 @@ function fieldHtml(f,val){
     case'textarea':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc(val)}</textarea>`;break;
     case'lines':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).join('\n'))}</textarea>`;break;
     case'pairs':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).map(o=>o[f.keys[0]]+' | '+o[f.keys[1]]).join('\n'))}</textarea>`;break;
+    case'trips':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).map(o=>o[f.keys[0]]+' | '+o[f.keys[1]]+' | '+o[f.keys[2]]).join('\n'))}</textarea>`;break;
     case'select':{
       const optsHtml=f.opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(val)?' selected':''}>${esc(l)}</option>`).join('');
       const searchable=f.opts.length>5;
@@ -186,6 +187,7 @@ function collect(form,fields,ctx){
     const raw=fd.get(f.k),s=String(raw==null?'':raw);
     if(f.t==='lines')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean);
     else if(f.t==='pairs')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean).map(l=>{const i=l.indexOf('|');return i<0?{[f.keys[0]]:'',[f.keys[1]]:l}:{[f.keys[0]]:l.slice(0,i).trim(),[f.keys[1]]:l.slice(i+1).trim()}});
+    else if(f.t==='trips')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean).map(l=>{const p=l.split('|').map(x=>x.trim());return {[f.keys[0]]:p[0]||'',[f.keys[1]]:p[1]||'',[f.keys[2]]:p[2]||''}});
     else if(f.t==='number')out[f.k]=s===''?0:Number(s);
     else out[f.k]=s.trim();
   });
@@ -272,12 +274,19 @@ const ENT={
 const SITE=[
   ['Company',[
     {k:'company.name',l:'Company name',t:'text',req:1},{k:'company.currency',l:'Currency symbol',t:'text'},
-    {k:'company.tagline',l:'Home page headline',t:'text',wide:1},{k:'company.intro',l:'Short introduction',t:'textarea',rows:3,wide:1},
-    {k:'company.email',l:'Email',t:'email'},{k:'company.phone',l:'Phone',t:'tel'},{k:'company.address',l:'Head office address',t:'text',wide:1},
-    {k:'company.logo',l:'Company logo',t:'image',wide:1},{k:'company.hero',l:'Home page cover photo',t:'image',wide:1},{k:'company.aboutImage',l:'About page photo',t:'image',wide:1},
+    {k:'company.logo',l:'Company logo',t:'image',wide:1,hint:'Shown in the header and footer on every page.'}]],
+  ['Home page',[
+    {k:'company.tagline',l:'Headline',t:'text',wide:1},{k:'company.intro',l:'Short introduction',t:'textarea',rows:3,wide:1},
+    {k:'company.hero',l:'Cover photo',t:'image',wide:1}]],
+  ['Home page: frequently asked questions',[
+    {k:'company.faqs',l:'Questions and answers (category | question | answer, one per line)',t:'trips',keys:['cat','q','a'],rows:8,wide:1,hint:'The category groups questions into tabs, e.g. General or Shipping. Leave the category blank to put a question under General.'}]],
+  ['About page',[
+    {k:'company.aboutImage',l:'Photo',t:'image',wide:1},
     {k:'company.story',l:'Company story (blank line between paragraphs)',t:'textarea',rows:7,wide:1},
     {k:'company.milestones',l:'Milestones (year | text, one per line)',t:'pairs',keys:['y','t'],rows:6,wide:1}]],
-  ['Social links',Object.keys(SOCIAL_LABELS).map(k=>({k:'socials.'+k,l:SOCIAL_LABELS[k],t:'url',ph:'https://'}))],
+  ['Contact page',[
+    {k:'company.email',l:'Email',t:'email'},{k:'company.phone',l:'Phone',t:'tel'},{k:'company.address',l:'Head office address',t:'text',wide:1}]],
+  ['Social links',Object.keys(SOCIAL_LABELS).map((k,i)=>({k:'socials.'+k,l:SOCIAL_LABELS[k],t:'url',ph:'https://',hint:i===0?'These same links are used in both the footer and the Contact page.':undefined}))],
   ['About page: authorised agent',[
     {k:'agent.name',l:'Agent name',t:'text'},{k:'agent.since',l:'Agent since',t:'text'},
     {k:'agent.tagline',l:'Tagline',t:'text',wide:1},{k:'agent.territory',l:'Territory',t:'text'},{k:'agent.license',l:'Licence number',t:'text'},
@@ -535,8 +544,9 @@ async function boot(){
       apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/categories'),apiFetch('/countries'),
     ]);
     const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,categories:categories.data,countries:countries.data};
+    const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state={...fresh,me:state.me};saveCache(fresh);
-    if(!cached){initTheme();renderAdmin()}
+    if(changed&&!sheetOpen){initTheme();renderAdmin()}
   }catch(e){if(!cached)bootError()}
 }
 
