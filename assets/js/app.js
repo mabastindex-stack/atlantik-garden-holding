@@ -89,7 +89,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],categories:[],countries:[]};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[]};
 const S=()=>state.settings;
 const fById=id=>state.factories.find(f=>f.id===id);
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
@@ -227,7 +227,7 @@ const fphoto=f=>`<span class="fph grain" aria-hidden="true"><b>${esc(String(f.co
 const notFound=()=>`<section class="wrap page-head"><h1>Page not found</h1><p class="lead">That page doesn’t exist.</p><p style="margin-top:24px"><a class="btn btn-primary" href="#/">Back to home</a></p></section>`;
 
 /* ================= HERO ================= */
-const heroSlides=()=>{const h=S().company.hero;return [[h||'assets/img/hero-1.jpg',REMOTE.hero1,h?'':'Golden wheat, Egypt'],['assets/img/hero-2.jpg',REMOTE.hero2,'Wheat ready for harvest'],['assets/img/hero-3.jpg',REMOTE.hero3,'Pomegranate after rain, Morocco']]};
+const heroSlides=()=>(state.slides||[]).map(s=>[s.image,undefined,s.caption]);
 function initHero(){
   const hero=$('#hero');if(!hero)return null;
   $('.pollen',hero).innerHTML=Array.from({length:REDUCED?0:18},()=>`<i style="left:${rnd(2,98).toFixed(1)}%;--s:${rnd(2,4.5).toFixed(1)}px;--t:${rnd(12,22).toFixed(1)}s;--dl:-${rnd(0,18).toFixed(1)}s;--dx:${rnd(-60,60).toFixed(0)}px"></i>`).join('');
@@ -724,17 +724,17 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],categories:[],countries:[],...cached};
+    state={faqs:[],slides:[],categories:[],countries:[],...cached};
     initTheme();renderChrome();route(true);
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,countries]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/countries'),
+    const [settings,factories,products,agents,announcements,faqs,slides,countries]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,countries:countries.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state=fresh;saveCache(fresh);
     if(changed){initTheme();renderChrome();route(true)}

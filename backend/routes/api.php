@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\FactoryController;
 use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\HeroSlideController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\UploadController;
@@ -22,6 +23,7 @@ Route::apiResource('announcements', AnnouncementController::class)->only(['index
 Route::apiResource('categories', CategoryController::class)->only(['index']);
 Route::apiResource('countries', CountryController::class)->only(['index']);
 Route::apiResource('faqs', FaqController::class)->only(['index']);
+Route::apiResource('hero-slides', HeroSlideController::class)->only(['index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -37,4 +39,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
     Route::apiResource('countries', CountryController::class)->except(['index', 'show']);
     Route::apiResource('faqs', FaqController::class)->except(['index', 'show']);
+    Route::apiResource('hero-slides', HeroSlideController::class)->except(['index', 'show']);
 });

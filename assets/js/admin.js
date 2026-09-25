@@ -61,7 +61,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],categories:[],countries:[],me:null};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -263,6 +263,10 @@ const ENT={
     make:()=>({id:'',question:'',answer:''}),
     fields:()=>[{k:'question',l:'Question',t:'text',req:1,wide:1},{k:'answer',l:'Answer',t:'textarea',rows:4,req:1,wide:1}],
     row:f=>rowHtml('faqs',f.id,ico('note'),f.question,f.answer.length>70?f.answer.slice(0,70)+'…':f.answer)},
+  slides:{one:'photo',title:'Home cover photos',apiPath:'/hero-slides',items:()=>state.slides,label:s=>s.caption||'Cover photo',
+    make:()=>({id:'',image:'',caption:''}),
+    fields:()=>[{k:'image',l:'Photo',t:'image',wide:1,hint:'Shown full-width at the top of the Home page. Add more than one and they rotate automatically.'},{k:'caption',l:'Caption (optional)',t:'text',wide:1}],
+    row:s=>rowHtml('slides',s.id,photo(s.image,s.caption||'Cover photo'),s.caption||'Untitled photo','Home page hero image')},
   categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
     make:()=>({id:'',name:''}),
     fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
@@ -278,8 +282,7 @@ const SITE=[
     {k:'company.name',l:'Company name',t:'text',req:1},{k:'company.currency',l:'Currency symbol',t:'text'},
     {k:'company.logo',l:'Company logo',t:'image',wide:1,hint:'Shown in the header and footer on every page.'}]],
   ['Home page',[
-    {k:'company.tagline',l:'Headline',t:'text',wide:1},{k:'company.intro',l:'Short introduction',t:'textarea',rows:3,wide:1},
-    {k:'company.hero',l:'Cover photo',t:'image',wide:1}]],
+    {k:'company.tagline',l:'Headline',t:'text',wide:1},{k:'company.intro',l:'Short introduction',t:'textarea',rows:3,wide:1,hint:'The cover photos rotating behind this text are managed on the "Home cover photos" page.'}]],
   ['About page',[
     {k:'company.aboutLead',l:'Page intro line',t:'text',wide:1,ph:'Leave blank to reuse the Home page headline'},
     {k:'company.aboutImage',l:'Photo',t:'image',wide:1},
@@ -330,7 +333,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['faqs','FAQs'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -546,16 +549,16 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],categories:[],countries:[],...cached,me:null};
+    state={faqs:[],slides:[],categories:[],countries:[],...cached,me:null};
     initTheme();renderAdmin();
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,categories,countries]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/categories'),apiFetch('/countries'),
+    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),
     ]);
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,categories:categories.data,countries:countries.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state={...fresh,me:state.me};saveCache(fresh);
     if(changed&&!sheetOpen){initTheme();renderAdmin()}
