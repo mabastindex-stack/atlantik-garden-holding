@@ -89,7 +89,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],categories:[],countries:[]};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],categories:[],countries:[]};
 const S=()=>state.settings;
 const fById=id=>state.factories.find(f=>f.id===id);
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
@@ -397,19 +397,11 @@ function valuesHtml(){
   return `<section class="sec wrap"><div class="vals-grid" data-stagger>${items.map(([i,t,d])=>`<div class="val" data-reveal><div class="st-ico">${ico(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></section>`;
 }
 
-const DEFAULT_FAQ=[
-  ['General','How do I place an order?','Contact your regional agent directly, or write to us and we’ll connect you with one.'],
-  ['General','Do you sell direct to consumers?','No. We supply through authorised agents and directly to registered buyers.'],
-  ['Shipping','What are your minimum order quantities?','Each product page lists its own MOQ, usually a pallet or a container depending on the item.'],
-  ['Shipping','Do you ship worldwide?','Our factories in Spain, Türkiye, the Kurdistan Region and Egypt ship to most regions through our agent network.'],
-];
 function faqHtml(){
-  const saved=S().company.faqs;
-  const FAQ=(saved&&saved.length)?saved.map(f=>[f.cat||'General',f.q,f.a]):DEFAULT_FAQ;
-  const cats=['All',...new Set(FAQ.map(f=>f[0]))];
+  const FAQ=state.faqs||[];
+  if(!FAQ.length)return '';
   return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>Frequently asked</h2></div>
-  <div class="fq-tabs" id="faqTabs" data-reveal>${cats.map((c,i)=>`<button class="chip" data-act="fqtab" data-v="${esc(c)}" aria-pressed="${i===0}">${esc(c)}</button>`).join('')}</div>
-  <div class="faqs" id="fqs" data-stagger>${FAQ.map(([c,q,a])=>`<details class="fq" data-c="${esc(c)}" data-reveal><summary class="fq-h" aria-expanded="false" data-act="fq"><span>${esc(q)}</span><span class="pm"></span></summary><div class="fq-b"><p>${esc(a)}</p></div></details>`).join('')}</div></section>`;
+  <div class="faqs" id="fqs" data-stagger>${FAQ.map(f=>`<details class="fq" data-reveal><summary class="fq-h" aria-expanded="false" data-act="fq"><span>${esc(f.question)}</span><span class="pm"></span></summary><div class="fq-b"><p>${esc(f.answer)}</p></div></details>`).join('')}</div></section>`;
 }
 
 function matchProduct(text){
@@ -679,7 +671,6 @@ document.addEventListener('click',e=>{
     case'top':window.scrollTo({top:0,behavior:REDUCED?'auto':'smooth'});break;
     case'menu':{const o=document.body.classList.toggle('menu-open');t.setAttribute('aria-expanded',String(o));break}
     case'fq':{const it=t.closest('.fq'),o=!it.classList.contains('open');$$('.fq.open').forEach(x=>{x.classList.remove('open');const h=$('.fq-h',x);if(h)h.setAttribute('aria-expanded','false')});if(o){it.classList.add('open');t.setAttribute('aria-expanded','true')}break}
-    case'fqtab':{$$('#faqTabs .chip').forEach(b=>b.setAttribute('aria-pressed',String(b===t)));let first=true;$$('#fqs .fq').forEach(x=>{const show=d.v==='All'||x.dataset.c===d.v;x.classList.toggle('hide',!show);if(show&&first&&!x.classList.contains('open')){$$('#fqs .fq.open').forEach(y=>{y.classList.remove('open');const h=$('.fq-h',y);if(h)h.setAttribute('aria-expanded','false')})}if(show)first=false});break}
     case'stage':if(stageApi)stageApi.go(+d.dir);break;
     case'rail':{const r=$('#rail');if(r)r.scrollBy({left:(+d.dir)*r.clientWidth*.8,behavior:'smooth'});break}
     case'cat':ui.cat=d.v;renderGrid();break;
@@ -733,17 +724,17 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={categories:[],countries:[],...cached};
+    state={faqs:[],categories:[],countries:[],...cached};
     initTheme();renderChrome();route(true);
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,countries]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/countries'),
+    const [settings,factories,products,agents,announcements,faqs,countries]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/countries'),
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,countries:countries.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,countries:countries.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state=fresh;saveCache(fresh);
     if(changed){initTheme();renderChrome();route(true)}

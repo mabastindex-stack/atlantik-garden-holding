@@ -61,7 +61,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],categories:[],countries:[],me:null};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],categories:[],countries:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -145,7 +145,6 @@ function fieldHtml(f,val){
     case'textarea':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc(val)}</textarea>`;break;
     case'lines':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).join('\n'))}</textarea>`;break;
     case'pairs':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).map(o=>o[f.keys[0]]+' | '+o[f.keys[1]]).join('\n'))}</textarea>`;break;
-    case'trips':ctl=`<textarea id="${id}" name="${f.k}" rows="${f.rows||4}">${esc((val||[]).map(o=>o[f.keys[0]]+' | '+o[f.keys[1]]+' | '+o[f.keys[2]]).join('\n'))}</textarea>`;break;
     case'select':{
       const optsHtml=f.opts.map(([v,l])=>`<option value="${esc(v)}"${String(v)===String(val)?' selected':''}>${esc(l)}</option>`).join('');
       const searchable=f.opts.length>5;
@@ -187,7 +186,6 @@ function collect(form,fields,ctx){
     const raw=fd.get(f.k),s=String(raw==null?'':raw);
     if(f.t==='lines')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean);
     else if(f.t==='pairs')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean).map(l=>{const i=l.indexOf('|');return i<0?{[f.keys[0]]:'',[f.keys[1]]:l}:{[f.keys[0]]:l.slice(0,i).trim(),[f.keys[1]]:l.slice(i+1).trim()}});
-    else if(f.t==='trips')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean).map(l=>{const p=l.split('|').map(x=>x.trim());return {[f.keys[0]]:p[0]||'',[f.keys[1]]:p[1]||'',[f.keys[2]]:p[2]||''}});
     else if(f.t==='number')out[f.k]=s===''?0:Number(s);
     else out[f.k]=s.trim();
   });
@@ -261,6 +259,10 @@ const ENT={
       {k:'title',l:'Title',t:'text',req:1,wide:1},{k:'body',l:'Details',t:'textarea',rows:4,wide:1},
       {k:'until',l:'Ends on',t:'date',hint:'Leave empty for no end date.'}],
     row:a=>rowHtml('notices',a.id,ico(a.type==='offer'?'bell':'note'),a.title,`${a.type}${a.discount?`, ${a.discount}% off`:''}${a.until?`, ends ${a.until}`:''}`)},
+  faqs:{one:'question',title:'FAQs',apiPath:'/faqs',items:()=>state.faqs,label:f=>f.question,
+    make:()=>({id:'',question:'',answer:''}),
+    fields:()=>[{k:'question',l:'Question',t:'text',req:1,wide:1},{k:'answer',l:'Answer',t:'textarea',rows:4,req:1,wide:1}],
+    row:f=>rowHtml('faqs',f.id,ico('note'),f.question,f.answer.length>70?f.answer.slice(0,70)+'…':f.answer)},
   categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
     make:()=>({id:'',name:''}),
     fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
@@ -278,8 +280,6 @@ const SITE=[
   ['Home page',[
     {k:'company.tagline',l:'Headline',t:'text',wide:1},{k:'company.intro',l:'Short introduction',t:'textarea',rows:3,wide:1},
     {k:'company.hero',l:'Cover photo',t:'image',wide:1}]],
-  ['Home page: frequently asked questions',[
-    {k:'company.faqs',l:'Questions and answers (category | question | answer, one per line)',t:'trips',keys:['cat','q','a'],rows:8,wide:1,hint:'The category groups questions into tabs, e.g. General or Shipping. Leave the category blank to put a question under General.'}]],
   ['About page',[
     {k:'company.aboutLead',l:'Page intro line',t:'text',wide:1,ph:'Leave blank to reuse the Home page headline'},
     {k:'company.aboutImage',l:'Photo',t:'image',wide:1},
@@ -330,7 +330,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['faqs','FAQs'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -546,16 +546,16 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={categories:[],countries:[],...cached,me:null};
+    state={faqs:[],categories:[],countries:[],...cached,me:null};
     initTheme();renderAdmin();
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,categories,countries]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/categories'),apiFetch('/countries'),
+    const [settings,factories,products,agents,announcements,faqs,categories,countries]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/categories'),apiFetch('/countries'),
     ]);
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,categories:categories.data,countries:countries.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,categories:categories.data,countries:countries.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state={...fresh,me:state.me};saveCache(fresh);
     if(changed&&!sheetOpen){initTheme();renderAdmin()}
