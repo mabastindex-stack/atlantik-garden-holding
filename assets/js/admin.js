@@ -281,10 +281,22 @@ const SITE=[
   ['Home page: frequently asked questions',[
     {k:'company.faqs',l:'Questions and answers (category | question | answer, one per line)',t:'trips',keys:['cat','q','a'],rows:8,wide:1,hint:'The category groups questions into tabs, e.g. General or Shipping. Leave the category blank to put a question under General.'}]],
   ['About page',[
+    {k:'company.aboutLead',l:'Page intro line',t:'text',wide:1,ph:'Leave blank to reuse the Home page headline'},
     {k:'company.aboutImage',l:'Photo',t:'image',wide:1},
     {k:'company.story',l:'Company story (blank line between paragraphs)',t:'textarea',rows:7,wide:1},
     {k:'company.milestones',l:'Milestones (year | text, one per line)',t:'pairs',keys:['y','t'],rows:6,wide:1}]],
+  ['Products page',[
+    {k:'company.productsTitle',l:'Title',t:'text',ph:'Our harvest'},
+    {k:'company.productsLead',l:'Intro line',t:'text',wide:1,ph:'Everything we grow, pack and ship…'}]],
+  ['Factories page',[
+    {k:'company.factoriesTitle',l:'Title',t:'text',ph:'Our factories'},
+    {k:'company.factoriesLead',l:'Intro line',t:'text',wide:1,ph:'{n} factories across {m} countries…',hint:'{n} and {m} are replaced automatically with the live factory and country counts.'}]],
+  ['Agents page',[
+    {k:'company.agentsTitle',l:'Title',t:'text',ph:'Authorised agents'},
+    {k:'company.agentsLead',l:'Intro line',t:'text',wide:1,ph:'Our agents are the sales centres for their regions…'}]],
   ['Contact page',[
+    {k:'company.contactTitle',l:'Title',t:'text',ph:'Talk to us'},
+    {k:'company.contactLead',l:'Intro line',t:'text',wide:1,ph:'Have a question about products, pricing or an order…'},
     {k:'company.email',l:'Email',t:'email'},{k:'company.phone',l:'Phone',t:'tel'},{k:'company.address',l:'Head office address',t:'text',wide:1}]],
   ['Social links',Object.keys(SOCIAL_LABELS).map((k,i)=>({k:'socials.'+k,l:SOCIAL_LABELS[k],t:'url',ph:'https://',hint:i===0?'These same links are used in both the footer and the Contact page.':undefined}))],
   ['About page: authorised agent',[

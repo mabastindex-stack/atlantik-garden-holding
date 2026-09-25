@@ -487,7 +487,8 @@ function panelHtml(){
   <div class="pf-block"><label class="check"><input type="checkbox" data-act="tog" data-k="offer"${ui.offer?' checked':''}><span>On offer</span></label></div></aside>`;
 }
 function pageProducts(){
-  return `<section class="wrap page-head" data-reveal><h1>Our harvest</h1><p class="lead">Everything we grow, pack and ship. Explore by category, origin or season, and open any product for prices and specifications.</p>
+  const c=S().company;
+  return `<section class="wrap page-head" data-reveal><h1>${esc(c.productsTitle||'Our harvest')}</h1><p class="lead">${esc(c.productsLead||'Everything we grow, pack and ship. Explore by category, origin or season, and open any product for prices and specifications.')}</p>
   <div class="stat-chips"><span class="chip stat"><b>${state.products.length}</b>products</span><span class="chip stat"><b>${new Set(state.factories.map(f=>f.country)).size}</b>origins</span><span class="chip stat"><b>${state.products.filter(p=>{const m=seasonMask(p.season),cm=new Date().getMonth();return m&&m[cm]}).length}</b>in season now</span></div></section>
   <section class="wrap psearch" data-reveal><div class="pfield"><input id="q" type="search" placeholder="Search products" value="${esc(ui.q)}">${ico('search')}</div>
   <select id="psort"><option value="featured"${ui.sort==='featured'?' selected':''}>Featured</option><option value="name"${ui.sort==='name'?' selected':''}>Name</option><option value="price-asc"${ui.sort==='price-asc'?' selected':''}>Price: low to high</option><option value="price-desc"${ui.sort==='price-desc'?' selected':''}>Price: high to low</option></select></section>
@@ -526,8 +527,9 @@ function productSheet(p){
 }
 
 function pageFactories(){
-  const F=state.factories;
-  return `<section class="wrap page-head" data-reveal><h1>Our factories</h1><p class="lead">${F.length} factories across ${new Set(F.map(f=>f.code)).size} countries, each packing what its own growers bring in.</p></section>
+  const F=state.factories,c=S().company;
+  const lead=(c.factoriesLead||'{n} factories across {m} countries, each packing what its own growers bring in.').replace('{n}',F.length).replace('{m}',new Set(F.map(f=>f.code)).size);
+  return `<section class="wrap page-head" data-reveal><h1>${esc(c.factoriesTitle||'Our factories')}</h1><p class="lead">${esc(lead)}</p></section>
   <section class="wrap"><div class="fx-grid" data-stagger>${F.map((f,i)=>fcard(f,i)).join('')}</div></section>`;
 }
 function pageFactory(id){
@@ -547,7 +549,8 @@ function agentsGridHtml(){
 }
 function renderAgentsGrid(){const g=$('#agrid');if(!g)return;g.innerHTML=agentsGridHtml();const c=$('#acount');if(c)c.textContent=state.agents.filter(a=>agentsMatch(a,(ui.aq||'').trim().toLowerCase())).length+' of '+state.agents.length;reveal(g)}
 function pageAgents(){
-  return `<section class="wrap page-head" data-reveal><h1>Authorised agents</h1><p class="lead">Our agents are the sales centres for their regions: pricing, samples, paperwork and delivery, handled by someone you can actually call.</p></section>
+  const c=S().company;
+  return `<section class="wrap page-head" data-reveal><h1>${esc(c.agentsTitle||'Authorised agents')}</h1><p class="lead">${esc(c.agentsLead||'Our agents are the sales centres for their regions: pricing, samples, paperwork and delivery, handled by someone you can actually call.')}</p></section>
   <section class="wrap"><div class="asearch"><input id="aq" type="search" placeholder="Search by city, country or territory">${ico('search')}<span id="acount" class="acount">${state.agents.length} of ${state.agents.length}</span></div>
   <div id="agrid" class="ag2-grid" data-stagger>${agentsGridHtml()}</div></section>`;
 }
@@ -560,7 +563,7 @@ function initAgentsPage(){
 
 function pageAbout(){
   const c=S().company,a=S().agent;
-  return `<section class="wrap page-head" data-reveal><h1>${esc(c.name)}</h1><p class="lead">${esc(c.tagline)}</p></section>
+  return `<section class="wrap page-head" data-reveal><h1>${esc(c.name)}</h1><p class="lead">${esc(c.aboutLead||c.tagline)}</p></section>
   ${c.aboutImage?`<section class="wrap"><div class="ab-photo" data-reveal><img src="${esc(c.aboutImage)}" alt=""></div></section>`:''}
   <section class="wrap"><p>${paras(c.story)}</p>
   ${(c.milestones||[]).length?`<div class="sec-head" style="margin-top:40px"><h2>Milestones</h2></div><ul class="steps" data-stagger>${c.milestones.map(m=>`<li data-reveal><h3>${esc(m.y)}</h3><p>${esc(m.t)}</p></li>`).join('')}</ul>`:''}</section>
@@ -579,7 +582,7 @@ function offersHtml(){
 }
 function pageContact(){
   const c=S().company;
-  return `<section class="wrap page-head" data-reveal><h1>Talk to us</h1><p class="lead">Have a question about products, pricing or an order? Write to us or find your regional agent.</p></section>
+  return `<section class="wrap page-head" data-reveal><h1>${esc(c.contactTitle||'Talk to us')}</h1><p class="lead">${esc(c.contactLead||'Have a question about products, pricing or an order? Write to us or find your regional agent.')}</p></section>
   <section class="wrap ct-body"><div class="contact-grid">
   <div class="ct-info"><a class="ct-tile" href="mailto:${esc(c.email)}" data-reveal><span class="ct-tile-ic">${ico('mail')}</span><div><small>Email</small><b>${esc(c.email)}</b></div></a>
   <a class="ct-tile" href="${tel(c.phone)}" data-reveal><span class="ct-tile-ic">${ico('phone')}</span><div><small>Phone</small><b>${esc(c.phone)}</b></div></a>
