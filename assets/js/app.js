@@ -209,8 +209,10 @@ function pcard(p,i){
   const code=p.country||(f&&f.code);
   const originName=p.country?countryName(p.country):(f?String(f.country).split(',')[0]:'');
   const m=seasonMask(p.season),cm=new Date().getMonth(),inSeason=m&&m[cm];
+  const slides=[p.image,p.image2,p.image3].filter(Boolean);
+  const media=slides.length>1?slides.map((u,k)=>`<div class="pd-slide${k?'':' on'}">${photo(u,p.name)}</div>`).join(''):photo(p.image,p.name,p.imageFb);
   return `<a class="px" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}" style="--i:${i};--tint:${esc(p.tint||'#CFE3B5')}">
-  <div class="px-media">${photo(p.image,p.name,p.imageFb)}<span class="px-shade"></span>
+  <div class="px-media">${media}<span class="px-shade"></span>
   ${inSeason?`<span class="tg tg-now"><i></i>In season</span>`:''}
   <div class="px-quick"><b>Quick facts</b><span><i>Packaging</i>${esc(p.packaging||'\u2014')}</span><span><i>MOQ</i>${esc(p.moq||'\u2014')}</span><span><i>Shelf life</i>${esc(p.shelfLife||'\u2014')}</span></div>
   <span class="px-go">${ico('arrow')}</span></div>
@@ -220,6 +222,17 @@ function pcard(p,i){
   <div class="px-foot">${code?`<span class="px-or">${flag(code)}${esc(originName)}</span>`:'<span></span>'}<span class="px-pr">${priceHtml(p)}</span></div></div></a>`;
 }
 function pcardX(p,i){return pcard(p,i)}
+let pxTimers=[];
+function stopPxRotate(){pxTimers.forEach(clearInterval);pxTimers=[]}
+function startPxRotate(root){
+  stopPxRotate();
+  if(REDUCED)return;
+  $$('.px-media',root||document).forEach(m=>{
+    const slides=$$('.pd-slide',m);if(slides.length<2)return;
+    let i=0;
+    pxTimers.push(setInterval(()=>{slides[i].classList.remove('on');i=(i+1)%slides.length;slides[i].classList.add('on')},2500));
+  });
+}
 
 /* ===== products: filter panel ===== */
 function panelHtml(){
@@ -273,6 +286,7 @@ function renderGrid(){
   movePill();
   const act=$('#pact');if(act)act.innerHTML=activeHtml();
   reveal(g);
+  startPxRotate(g);
 }
 function syncPanel(){renderGrid()}
 function initProducts(){
@@ -782,14 +796,15 @@ function productSheet(p){
   const f=fById(p.factoryId);
   const slides=[p.image,p.image2,p.image3].filter(Boolean);
   if(!slides.length&&p.imageFb)slides.push(p.imageFb);
-  return `<div class="fd-wrap"><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button>
+  const h=hashStr(p.name)%360;
+  return `<div class="fd-wrap pd-wrap" style="--h:${h}"><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button>
   <div class="fd-media pd-media">${slides.length?slides.map((u,i)=>`<div class="pd-slide${i===0?' on':''}">${photo(u,p.name)}</div>`).join(''):photo(p.image,p.name,p.imageFb)}${slides.length>1?`<div class="pd-dots">${slides.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>`:''}${p.discount?`<span class="badge">${+p.discount}% off</span>`:''}</div>
-  <div class="fd-body"><h2>${esc(p.name)}</h2><p class="lead">${esc(p.short)}</p>
-  <div class="fd-price">${priceHtml(p)}</div>
+  <div class="pd-body"><h2>${esc(p.name)}</h2><p class="lead">${esc(p.short)}</p>
+  <div class="pd-price">${priceHtml(p)}</div>
   <p>${esc(p.description)}</p>
-  <ul class="fd-feat">${(p.features||[]).map(x=>`<li>${ico('check')}${esc(x)}</li>`).join('')}</ul>
-  <dl class="fd-specs"><div><dt>Packaging</dt><dd>${esc(p.packaging)}</dd></div><div><dt>Shelf life</dt><dd>${esc(p.shelfLife)}</dd></div><div><dt>Minimum order</dt><dd>${esc(p.moq)}</dd></div><div><dt>Season</dt><dd>${esc(p.season)}</dd></div></dl>
-  ${f?`<div class="fd-pass">${flag(f.code)}<div><small>Made at</small><b>${esc(f.agency)}, ${esc(String(f.country).split(',')[0])}</b></div></div>`:''}
+  <ul class="pd-feat">${(p.features||[]).map(x=>`<li>${ico('check')}${esc(x)}</li>`).join('')}</ul>
+  <dl class="pd-specs"><div><dt>Packaging</dt><dd>${esc(p.packaging)}</dd></div><div><dt>Shelf life</dt><dd>${esc(p.shelfLife)}</dd></div><div><dt>Minimum order</dt><dd>${esc(p.moq)}</dd></div><div><dt>Season</dt><dd>${esc(p.season)}</dd></div></dl>
+  ${f?`<div class="fd-pass" style="--h:${hashStr(f.agency||'')%360}">${flag(f.code)}<div><small>Made at</small><b>${esc(f.agency)}, ${esc(String(f.country).split(',')[0])}</b></div></div>`:''}
   <a class="btn btn-primary" href="#/agents">Enquire through an agent</a></div></div>`;
 }
 
@@ -986,12 +1001,12 @@ function route(first){
   if(!first&&page==='products'&&current.page==='products'){if(arg)openProduct(arg);else closeSheet();return}
   const main=$('#main'),render=()=>{
     if(cleanup){cleanup();cleanup=null}
-    closeSheet();document.body.classList.remove('menu-open');
+    closeSheet();stopPxRotate();document.body.classList.remove('menu-open');
     current={page,arg};main.innerHTML=PAGES[page](arg);
     document.body.classList.toggle('on-hero',page==='home');
     document.title=(TITLES[page]?TITLES[page]+' | ':'')+S().company.name;
     setNav(page);window.scrollTo(0,0);
-    reveal(main);initCounters(main);
+    reveal(main);initCounters(main);startPxRotate(main);
     if(page==='products')cleanup=initProducts();
     if(page==='home'){const h=initHero(),p=initParallax(),q=initAcc(),u=initStage(),v=initLot(),w=initRoute(),x=initFx(),y=initOffers(),z=initCtaDeck();initWheel();cleanup=()=>{h&&h();p&&p();q&&q();u&&u();v&&v();w&&w();x&&x();y&&y();z&&z()}}
     if(page==='agents')cleanup=initAgentsPage();
