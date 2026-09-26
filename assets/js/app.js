@@ -292,12 +292,18 @@ function offerCard(a){
     <div class="o-foot">${a.until?`<span>${expired?'Ended':left===0?'Ends today':`Ends in ${left} day${left===1?'':'s'}`}</span>`:''}</div></div></article>`;
 }
 function agentCard(a,i){
-  const h=hashStr(a.name)%360,wa=a.whatsapp||a.phone,now=new Date(),hh=now.getHours(),open=/\d/.test(a.hours||'')?true:true;
-  return `<article class="ag2" id="${esc(a.id)}" style="--h:${h};--i:${i}"><div class="ag2-spine"><span class="ag2-code">${esc(a.code)}</span><span class="ag2-flagw">${flag(a.code)}</span><i class="ag2-dot" title="Usually available now"></i></div>
-  <div class="ag2-body"><a class="ag2-head" href="#/agents/${esc(a.id)}">${agentLogo(a)}<div><h3>${esc(a.name)}</h3><div class="ag2-loc">${ico('pin')}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</div></div></a>
-  <div class="ag2-mid"><span class="ag2-person"><b>${esc(a.contact)}</b><small>${esc(a.role)}</small></span><span class="ag2-terr"><i>${ico('route')}</i>${esc(a.territory)}</span></div>
-  <ul class="ag2-list"><li><a href="${tel(a.phone)}"><span class="ci">${ico('phone')}</span>${esc(a.phone)}</a></li><li><a href="mailto:${esc(a.email)}"><span class="ci">${ico('mail')}</span>${esc(a.email)}</a></li><li><span class="ci">${ico('clock')}</span>${esc(a.hours)}</li></ul>
-  <div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div></article>`;
+  const h=hashStr(a.name)%360,wa=a.whatsapp||a.phone;
+  const cover=(a.gallery||[]).find(Boolean);
+  return `<article class="ag3" id="${esc(a.id)}" style="--h:${h};--i:${i}">
+  <a class="ag3-media" href="#/agents/${esc(a.id)}" aria-label="View ${esc(a.name)}'s profile">${cover?`<img class="photo" src="${esc(cover)}" alt="" loading="lazy">`:`<span class="fph" aria-hidden="true"><b>${esc(initials(a.name))}</b></span>`}<span class="ag3-shade"></span>
+  <span class="ag3-flag">${flag(a.code)}</span>
+  <span class="ag3-live"><i class="ag3-dot"></i>Usually available</span>
+  <span class="ag3-go">${ico('arrow')}</span></a>
+  <div class="ag3-body"><span class="ag3-med">${agentLogo(a)}</span>
+  <a class="ag3-name" href="#/agents/${esc(a.id)}"><h3>${esc(a.name)}</h3></a>
+  <div class="ag3-loc">${ico('pin')}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</div>
+  <div class="ag3-mid"><span class="ag3-person"><b>${esc(a.contact)}</b><small>${esc(a.role)}</small></span><span class="ag3-terr">${ico('route')}${esc(a.territory)}</span><span class="ag3-hours">${ico('clock')}${esc(a.hours)}</span></div>
+  <div class="ag3-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div></article>`;
 }
 function fcard(f,i){
   const ps=productsOf(f.id),h=HUES[i%HUES.length],ag=state.agents.find(x=>x.code===f.code);
