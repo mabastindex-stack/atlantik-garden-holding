@@ -54,7 +54,12 @@ const I={
   eyeoff:'<path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a15.6 15.6 0 0 1-3.2 4.1M6.2 6.2A15.7 15.7 0 0 0 2 12s3.5 7 10 7c1 0 2-.1 2.9-.4"/>',
   logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
   chev:'<path d="M6 9l6 6 6-6"/>',
-  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  box:'<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  factory:'<path d="M3 21V10l5-3v3l5-3v3l5-3v11"/><path d="M3 21h18"/><path d="M7 21v-3.5M12 21v-3.5M17 21v-3.5"/>',
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9.3" r="2.4"/><path d="M15.7 14.3c2.7.5 4.3 2.4 4.3 5.7"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.4 2.5 3.7 5.7 3.7 9s-1.3 6.5-3.7 9c-2.4-2.5-3.7-5.7-3.7-9s1.3-6.5 3.7-9z"/>',
+  tag:'<path d="M3 12.5L11.5 4H19v7.5L10.5 21z"/><circle cx="15" cy="8" r="1.5"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
@@ -277,6 +282,53 @@ const ENT={
       {k:'flagImage',l:'Flag image',t:'image',wide:1,hint:'Upload the country’s flag. This is what shows up everywhere the country is picked.'}],
     row:c=>{const n=state.factories.filter(f=>f.code===c.code).length+state.agents.filter(a=>a.code===c.code).length;return rowHtml('countries',c.id,flag(c.code),c.name,`${n} item${n===1?'':'s'} using this country`)}}
 };
+
+/* ================= OVERVIEW CHARTS ================= */
+function donutChart(entries,total,unitLabel){
+  const top=entries.slice(0,5),restSum=entries.slice(5).reduce((s,[,v])=>s+v,0);
+  const segs=top.map(([l,v],i)=>({label:l,value:v,color:`var(--chart-${i+1})`}));
+  if(restSum>0)segs.push({label:'Other',value:restSum,color:'var(--chart-other)'});
+  const GAP=segs.length>1?0.45:0,stops=[];let acc=0;
+  segs.forEach(s=>{
+    const pct=total?s.value/total*100:0,from=acc,to=acc+pct,cut=Math.max(from,to-GAP);
+    stops.push(`${s.color} ${from.toFixed(2)}% ${cut.toFixed(2)}%`,`var(--surface) ${cut.toFixed(2)}% ${to.toFixed(2)}%`);
+    acc=to;
+  });
+  const gradient=segs.length?`conic-gradient(${stops.join(',')})`:'var(--bg-soft)';
+  return `<div class="donut-wrap"><div class="donut" style="background:${gradient}"><div class="donut-hole"><b>${total}</b><span>${esc(unitLabel)}</span></div></div>
+  <ul class="donut-legend">${segs.map(s=>`<li><i style="background:${s.color}"></i><span>${esc(s.label)}</span><b>${s.value}</b></li>`).join('')}</ul></div>`;
+}
+function hbarList(entries){
+  if(!entries.length)return `<p class="lead">No data yet.</p>`;
+  const max=entries.reduce((m,[,v])=>Math.max(m,v),0)||1;
+  return `<ul class="hbar-list">${entries.map(([label,value,code])=>`<li class="hbar-row">${code?`<span class="hbar-flag">${flag(code)}</span>`:''}<span class="hbar-lbl">${esc(label)}</span><span class="hbar-track"><span class="hbar-fill" style="width:${(value/max*100).toFixed(1)}%"></span></span><b class="hbar-val">${value}</b></li>`).join('')}</ul>`;
+}
+function overviewBody(){
+  const now=new Date();
+  const cards=[
+    ['products','Products',state.products.length,'box'],
+    ['factories','Factories',state.factories.length,'factory'],
+    ['agents','Agents',state.agents.length,'users'],
+    ['countries','Countries',state.countries.length,'globe'],
+    ['notices','Active offers',state.announcements.filter(a=>a.type==='offer'&&(!a.until||new Date(a.until)>=now)).length,'tag'],
+    ['faqs','FAQs',state.faqs.length,'note']
+  ];
+  const byCat={};state.products.forEach(p=>{const k=p.category||'Other';byCat[k]=(byCat[k]||0)+1});
+  const catEntries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const byCountry={};state.factories.forEach(f=>{const name=String(f.country||'Other').split(',')[0];(byCountry[name]=byCountry[name]||{count:0,code:f.code}).count++});
+  const countryEntries=Object.entries(byCountry).sort((a,b)=>b[1].count-a[1].count).map(([name,d])=>[name,d.count,d.code]);
+  const activeOffers=state.announcements.filter(a=>a.type==='offer'&&(!a.until||new Date(a.until)>=now));
+  const recentProducts=state.products.slice(-5).reverse();
+  return `<div class="dhead"><h2>Overview</h2></div>
+  <div class="dcards dcards2">${cards.map(([t,l,n,icon])=>`<a class="dcard dcard2" href="#${t}"><span class="dcard-ic">${ico(icon)}</span><b>${n}</b><span>${l}</span></a>`).join('')}</div>
+  <div class="dgrid2">
+    <div class="dpanel"><h3>Products by category</h3>${state.products.length?donutChart(catEntries,state.products.length,'Products'):'<p class="lead">Add products to see this chart.</p>'}</div>
+    <div class="dpanel"><h3>Factories by country</h3>${hbarList(countryEntries)}</div>
+  </div>
+  <div class="dpanel"><h3>Active offers${activeOffers.length?` (${activeOffers.length})`:''}</h3><ul class="dlist">${activeOffers.length?activeOffers.map(ENT.notices.row).join(''):'<li class="empty">No active offers right now.</li>'}</ul></div>
+  <div class="dpanel"><h3>Recently added products</h3><ul class="dlist">${recentProducts.length?recentProducts.map(ENT.products.row).join(''):'<li class="empty">No products yet.</li>'}</ul></div>
+  <div class="dpanel"><h3>Quick actions</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" data-act="add" data-kind="products">${ico('plus')}Product</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="factories">${ico('plus')}Factory</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="agents">${ico('plus')}Agent</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="notices">${ico('plus')}Notice</button></div></div>`;
+}
 const SITE=[
   ['Company',[
     {k:'company.name',l:'Company name',t:'text',req:1},{k:'company.currency',l:'Currency symbol',t:'text'},
@@ -355,9 +407,7 @@ function dashBody(tab){
     <label class="field wide"><span>New password</span><input type="password" name="new_password" autocomplete="new-password" placeholder="Leave blank to keep your current password" minlength="6"></label>
     </div></div><div class="savebar"><button class="btn btn-primary" type="submit">Save account</button></div></form>`;
   }
-  const cards=[['products','Products',state.products.length],['factories','Factories',state.factories.length],['agents','Agents',state.agents.length],['notices','Notices and offers',state.announcements.length]];
-  return `<div class="dhead"><h2>Overview</h2></div><div class="dcards">${cards.map(([t,l,n])=>`<a class="dcard" href="#${t}"><b>${n}</b><span>${l}</span></a>`).join('')}</div>
-  <div class="dpanel"><h3>Quick actions</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" data-act="add" data-kind="products">${ico('plus')}Product</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="factories">${ico('plus')}Factory</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="agents">${ico('plus')}Agent</button><button class="btn btn-ghost btn-sm" data-act="add" data-kind="notices">${ico('plus')}Notice</button></div></div>`;
+  return overviewBody();
 }
 function pageDashboard(tab){
   tab=DTABS.some(t=>t[0]===tab)?tab:'overview';current.arg=tab;
