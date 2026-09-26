@@ -256,13 +256,13 @@ function pageProducts(){
   <div class="prd-arches" aria-hidden="true">${state.products.slice(0,3).map((p,i)=>`<div class="pa pa${i}">${photo(p.image,p.name,p.imageFb)}</div>`).join('')}</div></div></section>
   <div class="wrap prd-pw" data-reveal>${panelHtml()}</div>
   <section class="wrap prd-res"><div class="prd-meta"><span id="pcount">Showing <b>${filteredP().length}</b> of ${state.products.length} products</span></div>
-  <div id="pgrid" class="px-grid ${ui.view==='list'?'list':''}" data-stagger>${filteredP().map(pcardX).join('')||`<div class="px-empty"><span class="pe-ic">${ico('search')}</span><h3>No products match these filters</h3><p>Try clearing a filter or searching a different word.</p></div>`}</div>
+  <div id="pgrid" class="pgrid px-grid ${ui.view==='list'?'list':''}" data-stagger>${filteredP().map(pcardX).join('')||`<div class="px-empty"><span class="pe-ic">${ico('search')}</span><h3>No products match these filters</h3><p>Try clearing a filter or searching a different word.</p></div>`}</div>
   <div id="pact">${activeHtml()}</div></section></div>`;
 }
 function renderGrid(){
   const g=$('#pgrid');if(!g)return;
   const P=filteredP();
-  g.className='px-grid '+(ui.view==='list'?'list':'');
+  g.className='pgrid px-grid '+(ui.view==='list'?'list':'');
   g.innerHTML=P.length?P.map(pcardX).join(''):`<div class="px-empty"><span class="pe-ic">${ico('search')}</span><h3>No products match these filters</h3><p>Try clearing a filter or searching a different word.</p></div>`;
   const cnt=$('#pcount');if(cnt){cnt.innerHTML=`Showing <b>${P.length}</b> of ${state.products.length} products`;cnt.classList.remove('pop');void cnt.offsetWidth;cnt.classList.add('pop')}
   $$('.sg',document).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===ui.cat)));
@@ -318,7 +318,7 @@ function pageFactories(){
   <ul class="fatlas-stats"><li><b>${F.length}</b><span>Factories</span></li><li><b>${ncty}</b><span>Countries</span></li><li><b>${state.products.length}</b><span>Products</span></li></ul></div>
   <div class="fatlas-orbit" aria-hidden="true"><i class="fatlas-ring r1"></i><i class="fatlas-ring r2"></i><span class="fatlas-core">${ico('leaf')}</span>${orbs}</div></div></section>
   <section class="wrap fa-list"><div class="fa-rows">${rows}</div></section>
-  <section class="wrap fa-grid-sec"><div class="fx2-grid" data-stagger>${F.map((f,i)=>fcard(f,i)).join('')}</div></section>`;
+  <section class="wrap fa-grid-sec"><div class="fgrid fx2-grid" data-stagger>${F.map((f,i)=>fcard(f,i)).join('')}</div></section>`;
 }
 function pageFactory(id){
   const F=state.factories,idx=F.findIndex(f=>f.id===id),f=F[idx];if(!f)return notFound();
@@ -334,7 +334,7 @@ function pageFactory(id){
   ${(f.certs||[]).length?`<div class="fd-card fd-certs"><h3>Certifications</h3><div class="tags">${f.certs.map(x=>`<span class="chip tag">${ico('check')}${esc(x)}</span>`).join('')}</div></div>`:''}
   ${ag?`<div class="fd-card fd-agent">${agentLogo(ag)}<div><small>Authorised agent</small><b>${esc(ag.name)}</b></div></div>`:''}
   <div class="fd-pass"><span class="fd-stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="fdSeal2" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#fdSeal2" startOffset="0">Authorised \u2022 Since ${esc(f.since)} \u2022 </textPath></text></svg><b>${esc(f.code)}</b></span><div><small>Team</small><b>${esc(f.employees)}</b></div></div></div></div>
-  ${ps.length?`<div class="fd-prod"><div class="sec-head"><h2>Products from this factory</h2></div><div class="px-grid" data-stagger>${ps.map(pcardX).join('')}</div></div>`:''}
+  ${ps.length?`<div class="fd-prod"><div class="sec-head"><h2>Products from this factory</h2></div><div class="pgrid px-grid" data-stagger>${ps.map(pcardX).join('')}</div></div>`:''}
   <div class="fd-pager"><a class="fdp" href="#/factories/${esc(prev.id)}"><span class="fdp-ic">${ico('left')}</span><span class="fdp-flag">${flag(prev.code)}</span><span><small>Previous</small><b>${esc(String(prev.country).split(',')[0])}</b></span></a>
   <a class="fdp fdp-next" href="#/factories/${esc(next.id)}"><span class="fdp-ic">${ico('right')}</span><span class="fdp-flag">${flag(next.code)}</span><span><small>Next</small><b>${esc(String(next.country).split(',')[0])}</b></span></a></div></div></section>`;
 }
@@ -398,6 +398,12 @@ function deepColor(hex){
   if(m){const n=parseInt(m[1],16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h=Math.round(h*60);if(h<0)h+=360}}
   return [`hsl(${h} 54% 42%)`,`hsl(${h} 60% 62%)`];
 }
+
+
+
+
+
+
 function storyHtml(){
   const c=S().company;
   return `<section class="story grain" id="story"><div class="story-photo"><img class="photo" src="assets/img/story.jpg" data-fb="${esc(REMOTE.story)}" alt="" loading="lazy" data-photo></div>
@@ -703,6 +709,25 @@ function initAcc(){
   });
   return()=>cleanups.forEach(c=>c());
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function pageHome(){
   const c=S().company,slides=heroSlides();
   return `<section class="hero on-hero" id="hero"><div class="hero-bg"></div>
@@ -764,7 +789,7 @@ function pageAgents(){
   <div class="ah-bf-wrap"><svg class="ah-bf-svg" viewBox="0 0 60 40">${FLAGS[homeAg.code]||''}</svg><i class="ah-bf-shine"></i><i class="ah-bf-pole"></i></div>
   <div class="ah-bf-dust">${Array.from({length:14},(_,i)=>`<i style="--i:${i};--x:${(6+i*6.7).toFixed(1)}%;--t:${(6+(i%5)*1.6).toFixed(1)}s;--dl:-${(i*0.7).toFixed(1)}s;--s:${(2+(i%3)).toFixed(0)}px"></i>`).join('')}</div></div>`:''}</div></section>
   <section class="wrap ag-sec"><div class="ag-tool"><label class="pf-search ag-search">${ico('search')}<input id="aq" type="search" autocomplete="off" placeholder="Search by city, country or territory" value="${esc(ui.aq||'')}"></label><span id="acount" class="ag-count">${A.length} of ${A.length}</span></div>
-  <div id="agrid" class="ag2-grid" data-stagger>${agentsGridHtml()}</div></section>`;
+  <div id="agrid" class="agrid ag2-grid" data-stagger>${agentsGridHtml()}</div></section>`;
 }
 
 function agentsGridHtml(){
