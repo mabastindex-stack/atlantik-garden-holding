@@ -279,37 +279,6 @@ function deepColor(hex){
   if(m){const n=parseInt(m[1],16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h=Math.round(h*60);if(h<0)h+=360}}
   return [`hsl(${h} 54% 42%)`,`hsl(${h} 60% 62%)`];
 }
-function calendarHtml(){
-  const now=new Date(),cm=now.getMonth();
-  const rows=state.products.map(p=>({p,m:seasonMask(p.season)})).filter(r=>r.m);
-  if(!rows.length)return '';
-  return rows.map(({p,m})=>{
-    const[c1,c2]=deepColor(p.tint),active=m[cm];
-    return `<div class="cal-row${active?' now':''}"><div class="cal-name"><span class="cal-dot" style="--c1:${c1};--c2:${c2}"></span>${esc(p.name)}</div>
-    <div class="cal-track">${MON3.map((mo,i)=>`<span class="cal-cell${m[i]?' on':''}${i===cm?' cur':''}" style="--c1:${c1};--c2:${c2}" title="${MONF[i]}"></span>`).join('')}</div>
-    <div class="cal-label">${esc(runLabel(m))}</div></div>`;
-  }).join('');
-}
-function initWheel(){
-  const cal=$('#calendar');if(!cal)return;
-  const rows=$$('.cal-row',cal);
-  rows.forEach(r=>r.addEventListener('mouseenter',()=>r.classList.add('hover')));
-  rows.forEach(r=>r.addEventListener('mouseleave',()=>r.classList.remove('hover')));
-}
-
-function routeHtml(){
-  const F=state.factories;
-  if(F.length<2)return '';
-  return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>From ${F.length} origins to every market</h2><p class="lead" style="max-width:40ch">Each factory supplies the holding, and our authorised agents deliver to buyers in their own region.</p></div>
-  <div class="rmap" data-reveal><svg viewBox="0 0 900 320" aria-hidden="true" class="rmap-svg">
-    ${F.map((f,i)=>{const x=90+i*((900-180)/Math.max(1,F.length-1)),y=90+((i%2)*100);return `<circle cx="${x}" cy="${y}" r="7" fill="var(--fern)"/><path d="M${x} ${y}L450 230" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3 5"/>`}).join('')}
-    <circle cx="450" cy="230" r="11" fill="var(--btn)"/>
-  </svg>
-  <div class="rmap-pts">${F.map((f,i)=>`<a class="rpt" href="#/factories/${esc(f.id)}" style="--i:${i}">${flag(f.code)}<b>${esc(String(f.country).split(',')[0])}</b></a>`).join('')}</div>
-  <div class="rmap-hub"><span>${ico('route')}</span><b>Buyers</b></div></div></section>`;
-}
-function initRoute(){return null}
-
 function storyHtml(){
   const c=S().company;
   return `<section class="story grain" id="story"><div class="story-photo"><img class="photo" src="assets/img/story.jpg" data-fb="${esc(REMOTE.story)}" alt="" loading="lazy" data-photo></div>
@@ -339,28 +308,265 @@ function initLot(){
   return()=>{io2.disconnect();lot.parentElement.removeEventListener('mousemove',onMove);lot.parentElement.removeEventListener('mouseleave',onLeave)};
 }
 
-function stageHtml(){
-  const P=state.products.slice(0,8);
-  if(!P.length)return '';
-  return `<section class="stage" id="stage"><span class="stage-word" aria-hidden="true">Stock</span>
-  <div class="wrap stage-grid"><div class="stage-head" data-reveal><h2>Ready to ship</h2></div>
-  <div class="stage-infow" data-reveal><p class="lead">Browse a slice of the catalogue. Open any product for full specifications.</p><a class="link" href="#/products">See all products${ico('arrow')}</a></div>
-  <div class="stage-deck" id="deck" tabindex="0" aria-label="Product cards">${P.map((p,i)=>`<a class="sc" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}" style="--p:${i};--tint:${esc(p.tint||'#CFE3B5')}"><div class="sc-in">${photo(p.image,p.name,p.imageFb)}<div class="sc-cap"><b>${esc(p.name)}</b><span>${priceHtml(p)}</span></div></div></a>`).join('')}</div>
-  <div class="stage-nav"><button class="icon-btn" data-act="stage" data-dir="-1" aria-label="Previous">${ico('left')}</button><button class="icon-btn" data-act="stage" data-dir="1" aria-label="Next">${ico('right')}</button></div></div></section>`;
-}
+
 let stageApi=null;
-function initStage(){
-  const deck=$('#deck');if(!deck)return null;
-  const cards=$$('.sc',deck);if(!cards.length)return null;
-  let idx=0;
-  const paint=()=>{cards.forEach((c,i)=>{let p=i-idx;if(p<-2)p+=cards.length;if(p>cards.length-3)p-=cards.length;c.style.setProperty('--p',p);c.classList.toggle('out',p<0);c.classList.toggle('far',p>3)})};
-  const go=d=>{idx=(idx+d+cards.length)%cards.length;paint()};
-  paint();
-  stageApi={go};
-  const key=e=>{if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1)};
-  deck.addEventListener('keydown',key);
-  return()=>{deck.removeEventListener('keydown',key);stageApi=null};
+
+/* ===== shared: waves ===== */
+const wavePath=(base,amp,per=720,n=4)=>{let d=`M0 ${base}`;for(let i=0;i<n;i++){const x=i*per;d+=`C${x+per/6} ${base-amp} ${x+per/3} ${base+amp} ${x+per/2} ${base}S${x+per*5/6} ${base+amp} ${x+per} ${base}`}return d+'V60H0Z'};
+const wavesHtml=cls=>`<div class="waves ${cls}" aria-hidden="true"><svg viewBox="0 0 1200 60" preserveAspectRatio="none"><path class="wf" d="${wavePath(30,16)}"/><path class="wl" d="${wavePath(30,16).replace(/V60H0Z$/,'')}"/></svg></div>`;
+
+/* ===== stage: harvest showcase ===== */
+function stageHtml(){
+  const real=p=>(p.imageFb||/^data:/.test(p.image||''))?1:0,list=state.products.slice().sort((a,b)=>real(b)-real(a)).slice(0,10);
+  if(!list.length)return '';
+  const cards=list.map((p,k)=>`<a class="sc" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}" data-k="${k}" style="--tint:${esc(p.tint||'#CFE3B5')}"><span class="sc-in">${photo(p.image,p.name,p.imageFb)}${p.discount?`<span class="badge">${+p.discount}% off</span>`:''}<span class="sc-cap"><b>${esc(p.name)}</b><span>${priceHtml(p)}</span></span></span></a>`).join('');
+  const dots=list.map((p,k)=>`<button class="sd" type="button" data-k="${k}" aria-label="${esc(p.name)}">${photo(p.image,p.name,p.imageFb)}</button>`).join('');
+  return `<section class="stage" id="stage"><div class="stage-bg" aria-hidden="true"></div><div class="stage-word" id="stWord" aria-hidden="true"></div>
+  <div class="wrap"><div class="sec-head" data-reveal><h2>This season\u2019s harvest</h2></div></div>
+  <div class="wrap stage-grid"><div class="stage-head" data-reveal></div>
+  <div class="stage-deck" id="stTrack" tabindex="0" aria-label="Featured products">${cards}</div>
+  <div class="stage-infow"><div class="stage-info" id="stInfo" aria-live="polite"></div>
+  <div class="stage-ctl"><button class="icon-btn" data-act="stage" data-dir="-1" aria-label="Previous product">${ico('left')}</button><button class="ring-btn" data-act="stage" data-dir="1" aria-label="Next product"><svg class="rb" viewBox="0 0 48 48" aria-hidden="true"><circle class="rb-track" cx="24" cy="24" r="22"/><circle class="rb-prog" cx="24" cy="24" r="22"/></svg>${ico('right')}</button><a class="link" href="#/products">See the full range</a></div>
+  <div class="stage-dots">${dots}</div></div></div></section>`;
 }
+function initStage(){
+  const st=$('#stage');if(!st)return null;
+  const cards=$$('.sc',st),dots=$$('.sd',st),info=$('#stInfo',st),word=$('#stWord',st),track=$('#stTrack',st),ring=$('.rb-prog',st),n=cards.length;
+  if(!n)return null;
+  const prods=cards.map(c=>state.products.find(p=>p.id===c.dataset.id)),half=n/2,prevO=cards.map(()=>0);
+  let idx=0,timer=null,down=null,dragged=false;
+  const render=first=>{
+    cards.forEach((c,k)=>{
+      let o=((k-idx)%n+n)%n;if(o>half)o-=n;
+      const a=Math.abs(o);
+      if(!first&&Math.abs(o-prevO[k])>half){c.classList.add('jump');requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.remove('jump')))}
+      prevO[k]=o;c.style.setProperty('--p',o);c.style.zIndex=String(20-Math.round(a));
+      c.classList.toggle('on',o===0);c.classList.toggle('far',a>2);c.tabIndex=o===0?0:-1;
+    });
+    dots.forEach((d,k)=>d.classList.toggle('on',k===idx));
+    const p=prods[idx];if(!p)return;const f=fById(p.factoryId);
+    info.classList.remove('swap');void info.offsetWidth;
+    info.innerHTML=`<h3>${esc(p.name)}</h3><p>${esc(p.short)}</p><div class="si-meta">${f?`<span>${flag(f.code)}${esc(String(f.country).split(',')[0])}</span>`:''}<span>${priceHtml(p)}</span>${p.season?`<span>${ico('clock')}${esc(p.season)}</span>`:''}</div><a class="btn btn-primary" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}">View product</a>`;
+    info.classList.add('swap');
+    st.style.setProperty('--stint',p.tint||'#CFE3B5');
+    word.classList.remove('pop');void word.offsetWidth;word.textContent=p.category||'';word.classList.add('pop');
+  };
+  const restart=()=>{
+    if(timer)clearInterval(timer);
+    if(ring){ring.classList.remove('run');void ring.getBoundingClientRect();ring.classList.add('run')}
+    if(!REDUCED)timer=setInterval(()=>{idx=(idx+1)%n;render();if(ring){ring.classList.remove('run');void ring.getBoundingClientRect();ring.classList.add('run')}},5600);
+  };
+  const go=d=>{idx=(idx+d+n)%n;render();restart()};
+  const to=k=>{idx=k;render();restart()};
+  cards.forEach((c,k)=>c.addEventListener('click',e=>{if(dragged){e.preventDefault();e.stopPropagation();return}if(!c.classList.contains('on')){e.preventDefault();e.stopPropagation();to(k)}}));
+  dots.forEach((d,k)=>d.addEventListener('click',()=>to(k)));
+  track.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();go(1)}if(e.key==='ArrowLeft'){e.preventDefault();go(-1)}});
+  track.addEventListener('pointerdown',e=>{down=e.clientX;dragged=false});
+  track.addEventListener('pointermove',e=>{if(down!=null&&Math.abs(e.clientX-down)>12)dragged=true});
+  const up=e=>{if(down==null)return;const dx=e.clientX-down;down=null;if(Math.abs(dx)>50){go(dx<0?1:-1)}setTimeout(()=>{dragged=false},60)};
+  track.addEventListener('pointerup',up);track.addEventListener('pointercancel',()=>{down=null});
+  render(true);restart();stageApi={go};
+  return()=>{if(timer)clearInterval(timer);stageApi=null};
+}
+
+/* ===== offers: voucher tickets + notices ===== */
+function matchProduct(a){
+  const txt=(' '+(a.title||'')+' '+(a.body||'')+' ').toLowerCase();
+  let best=null,bs=0;
+  state.products.forEach(p=>{const sc=String(p.name).toLowerCase().split(/[^a-z]+/).filter(w=>w.length>=4).reduce((n,w)=>n+(new RegExp('\\b'+w.replace(/s$/,'')+'s?\\b').test(txt)?1:0),0);if(sc>bs){bs=sc;best=p}});
+  return best;
+}
+function ticketHtml(a,i){
+  const p=matchProduct(a),tint=(p&&p.tint)||'#E9C46A',real=p&&(p.imageFb||/^data:/.test(p.image||''));
+  const cd=a.until?`<div class="tk-cdw"><span class="tk-lbl">Ends in</span><div class="tk-cd" aria-label="Time left"><span><b data-u="d">0</b><i>days</i></span><span><b data-u="h">00</b><i>hrs</i></span><span><b data-u="m">00</b><i>min</i></span><span><b data-u="s">00</b><i>sec</i></span></div></div>`:`<span class="tk-open">No end date</span>`;
+  const stub=real?photo(p.image,p.name,p.imageFb):`<span class="tk-tone"></span>`;
+  return `<article class="tk" data-until="${esc(a.until||'')}" style="--tint:${esc(tint)};--i:${i}"><div class="tk-in">
+  <div class="tk-stub grain">${stub}<span class="tk-shade"></span><i class="tk-frame"></i><div class="tk-disc">${a.discount?`<b>${+a.discount}<sup>%</sup></b><small>off</small>`:`<b>${ico('bell')}</b>`}</div>${p?`<span class="tk-prod">${esc(p.name)}</span>`:''}</div>
+  <div class="tk-main"><span class="o-type">Offer</span><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p><div class="tk-foot">${cd}<a class="tk-cta" href="#/agents">Ask your agent</a></div></div></div></article>`;
+}
+const noticeIcon=a=>{const t=(a.title+' '+a.body).toLowerCase();return /ship|dispatch|deliver/.test(t)?'truck':/sample/.test(t)?'gift':(a.type==='notice'?'bell':'note')};
+function noticeHtml(a,i){
+  const link=/sample/i.test(a.title+' '+a.body)?['#/agents','Ask your agent']:['#/contact','Contact us'];
+  return `<article class="nc t-${esc(a.type)}" style="--i:${i}"><span class="nc-med"><i class="nc-ring"></i>${ico(noticeIcon(a))}</span><div class="nc-b"><span class="o-type">${a.type==='notice'?'Notice':'Note'}</span><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p><a class="nc-link" href="${link[0]}">${link[1]}${ico('arrow')}</a></div></article>`;
+}
+function homeOffersHtml(){
+  const live=activeOffers(),others=state.announcements.filter(a=>a.type!=='offer'&&isLive(a)).slice(0,4);
+  if(!live.length&&!others.length)return '';
+  return `<section class="sec wrap off-sec"><div class="sec-head" data-reveal><div>${live.length?`<span class="live-badge"><i></i>${live.length} active offer${live.length===1?'':'s'}</span>`:''}<h2>Offers and notices</h2></div><a class="link" href="#/contact/offers">All offers${ico('arrow')}</a></div>
+  ${live.length?`<div class="tk-grid ol-tk" data-stagger>${live.slice(0,4).map(ticketHtml).join('')}</div>`:''}
+  ${others.length?`<div class="nc-grid" data-stagger>${others.map(noticeHtml).join('')}</div>`:''}</section>`;
+}
+let offersInt=null;
+function initOffers(){
+  if(offersInt){clearInterval(offersInt);offersInt=null}
+  const tks=$$('.tk[data-until]').filter(e=>e.dataset.until);if(!tks.length)return null;
+  const upd=()=>tks.forEach(el=>{
+    const cd=$('.tk-cd',el);if(!cd)return;
+    const diff=new Date(el.dataset.until+'T23:59:59')-new Date();
+    if(diff<=0){cd.outerHTML='<span class="tk-open">Ended</span>';return}
+    const sec=Math.floor(diff/1000),v={d:String(Math.floor(sec/86400)),h:String(Math.floor(sec%86400/3600)).padStart(2,'0'),m:String(Math.floor(sec%3600/60)).padStart(2,'0'),s:String(sec%60).padStart(2,'0')};
+    Object.keys(v).forEach(k=>{const b=$(`[data-u="${k}"]`,cd);if(b&&b.textContent!==v[k])b.textContent=v[k]});
+  });
+  upd();offersInt=setInterval(upd,1000);return()=>{if(offersInt){clearInterval(offersInt);offersInt=null}};
+}
+
+/* ===== factories: immersive showcase ===== */
+function fxHtml(){
+  const F=state.factories;if(!F.length)return '';
+  const hue=i=>HUES[i%HUES.length];
+  const bgs=F.map((f,i)=>`<div class="fz-bg${i===0?' on':''}" style="--h:${hue(i)}"><svg class="fz-flag" viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${FLAGS[f.code]||''}</svg>${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy" data-photo>`:''}<i class="fz-aur"></i></div>`).join('');
+  const conts=F.map((f,i)=>{const ps=productsOf(f.id);return `<article class="fz-c${i===0?' on':''}"><span class="fz-fl">${flag(f.code)}</span><h3 class="fz-country">${esc(String(f.country).split(',')[0])}</h3><p class="fz-sub">${esc(f.agency)}, ${esc(f.city)}</p>
+    <div class="fz-facts">${f.director?`<span>Director <b>${esc(f.director)}</b></span>`:''}${f.since?`<span>Since <b>${esc(f.since)}</b></span>`:''}${f.employees?`<span>Team <b>${esc(f.employees)}</b></span>`:''}${f.capacity?`<span>Capacity <b>${esc(f.capacity)}</b></span>`:''}</div>
+    ${(f.certs||[]).length?`<div class="fz-certs">${f.certs.map(x=>`<span>${ico('check')}${esc(x)}</span>`).join('')}</div>`:''}
+    <div class="fz-row2"><div class="fz-prods">${ps.slice(0,4).map(p=>`<span class="mini" style="--tint:${esc(p.tint)}">${photo(p.image,p.name,p.imageFb)}</span>`).join('')}${ps.length?`<em>${ps.length} product${ps.length===1?'':'s'}</em>`:''}</div><a class="btn btn-primary" href="#/factories/${esc(f.id)}">Open factory</a></div></article>`}).join('');
+  const tabs=F.map((f,i)=>{const n=productsOf(f.id).length;return `<li><a class="fz-tab${i===0?' on':''}" data-i="${i}" href="#/factories/${esc(f.id)}">${flag(f.code)}<span><b>${esc(String(f.country).split(',')[0])}</b><small>${esc(f.city)}</small></span><em>${n}</em><i class="fz-prog"></i></a></li>`}).join('');
+  return `<section class="fz grain" id="fx" data-reveal><div class="fz-bgs" aria-hidden="true">${bgs}</div><div class="fz-scrim" aria-hidden="true"></div>
+  <div class="wrap fz-in"><div class="fz-title"><h2>Where it is grown and packed</h2><a class="link" href="#/factories">Meet the factories</a></div><div class="fz-cont">${conts}</div><ul class="fz-tabs">${tabs}</ul></div></section>`;
+}
+function initFx(){
+  const el=$('#fx');if(!el)return null;
+  const bg=$$('.fz-bg',el),cs=$$('.fz-c',el),ts=$$('.fz-tab',el),n=cs.length;if(!n)return null;
+  let i=0,t=null;
+  const set=k=>{i=k;bg.forEach((p,j)=>p.classList.toggle('on',j===k));cs.forEach((p,j)=>p.classList.toggle('on',j===k));ts.forEach((r,j)=>{r.classList.remove('on');if(j===k){void r.offsetWidth;r.classList.add('on')}})};
+  const start=()=>{if(t)clearInterval(t);if(!REDUCED)t=setInterval(()=>set((i+1)%n),6500)};
+  ts.forEach((r,k)=>{r.addEventListener('mouseenter',()=>{set(k);start()});r.addEventListener('focus',()=>{set(k);start()})});
+  set(0);start();
+  return()=>{if(t)clearInterval(t)};
+}
+
+/* ===== values ===== */
+function valuesHtml(){
+  const pillars=[['leaf','Grown near the source','Growers work within a short drive of each factory, so fruit and grain reach the packing line hours after harvest.','#/factories','Meet the factories'],
+    ['box','Packed where it is picked','Sorting, packing and quality checks happen on site, with lot numbers that follow the product all the way to you.','#/products','Browse products'],
+    ['route','Delivered by people you can call','Every order goes through an authorised agent who knows your market, your paperwork and your delivery window.','#/agents','Find an agent']];
+  return `<section class="sec wrap vals"><div class="sec-head" data-reveal><h2>What you can count on</h2><p class="lead" style="max-width:38ch">Three promises that stand behind every order.</p></div>
+  <div class="vgrid" data-stagger>${pillars.map(([i,t,d,h,l])=>`<article class="vc"><div class="vc-img"><span class="ph" aria-hidden="true"><b></b></span></div>
+  <div class="vc-body"><span class="vc-med"><i class="vc-ring"></i>${ico(i)}</span><h3>${t}</h3><p>${d}</p><a class="vc-link" href="${h}">${l}${ico('arrow')}</a></div></article>`).join('')}</div></section>`;
+}
+
+/* ===== route: holding network ===== */
+function routeHtml(){
+  const F=state.factories,A=state.agents;if(!F.length||!A.length)return '';
+  const fc=F.map((f,i)=>{const ps=productsOf(f.id);return `<a class="rn rn-f" href="#/factories/${esc(f.id)}" data-k="f${i}" style="--h:${HUES[i%HUES.length]};--n2:${i}"><span class="rn-tag">Factory</span><span class="rn-go">${ico('arrow')}</span><span class="rn-flag">${flag(f.code)}</span><b class="rn-t">${esc(String(f.country).split(',')[0])}</b><small class="rn-s">${esc(f.city)}</small><span class="rn-a">${esc(f.agency)}</span><span class="rn-p">${ps.slice(0,4).map(p=>`<span class="mini" style="--tint:${esc(p.tint)}">${photo(p.image,p.name,p.imageFb)}</span>`).join('')}<em>${ps.length} product${ps.length===1?'':'s'}</em></span></a>`}).join('');
+  const ac=A.map((a,j)=>`<a class="rn rn-g" href="#/agents" data-k="g${j}" style="--h:${hashStr(a.name)%360};--n2:${j+F.length}"><span class="rn-tag">Agent</span><span class="rn-go">${ico('arrow')}</span>${agentLogo(a)}<b class="rn-t">${esc(a.city)}</b><small class="rn-s">${esc(a.territory)}</small><span class="rn-a">${esc(a.contact)}, ${esc(a.role)}</span><span class="rn-ph">${ico('phone')}${esc(a.phone)}</span></a>`).join('');
+  return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>From ${F.length} origins to every market</h2><p class="lead" style="max-width:40ch">Each factory supplies the holding, and our authorised agents deliver to buyers in their own region.</p></div>
+  <div class="rt" id="rt" data-reveal><div class="rt-row" style="--n:${F.length}">${fc}</div>
+  <div class="rt-hubrow"><div class="hub" aria-hidden="true"><i class="hub-p"></i><i class="hub-p b"></i><span class="hub-core">${LOGO}</span></div></div>
+  <div class="rt-row" style="--n:${A.length}">${ac}</div><svg class="rt-svg" aria-hidden="true"></svg></div></section>`;
+}
+function initRoute(){
+  const box=$('#rt');if(!box)return null;
+  const svg=$('.rt-svg',box),core=$('.hub-core',box),tops=$$('.rn-f',box),bots=$$('.rn-g',box);
+  const mq=window.matchMedia?matchMedia('(max-width:900px)'):{matches:false};
+  const draw=()=>{
+    if(mq.matches){svg.innerHTML='';return}
+    const b=box.getBoundingClientRect(),hr=core.getBoundingClientRect();
+    if(!b.width)return;
+    svg.setAttribute('viewBox',`0 0 ${b.width.toFixed(1)} ${b.height.toFixed(1)}`);
+    const hx=hr.left-b.left+hr.width/2,hy=hr.top-b.top+hr.height/2,R=hr.width/2+2,step=.46,f1=v=>v.toFixed(1);
+    let out='',pins='',t=0;
+    const add=(el,i,n,dir,key)=>{
+      const r=el.getBoundingClientRect(),x=r.left-b.left+r.width/2,y=(dir<0?r.bottom:r.top)-b.top,mid=(n-1)/2;
+      const ang=dir<0?-Math.PI/2+(i-mid)*step:Math.PI/2-(i-mid)*step,px=hx+R*Math.cos(ang),py=hy+R*Math.sin(ang),dy=Math.abs(py-y)*.55;
+      const d=dir<0?`M${f1(x)} ${f1(y)}C${f1(x)} ${f1(y+dy)} ${f1(px)} ${f1(py-dy)} ${f1(px)} ${f1(py)}`:`M${f1(px)} ${f1(py)}C${f1(px)} ${f1(py+dy)} ${f1(x)} ${f1(y-dy)} ${f1(x)} ${f1(y)}`;
+      const dots=[0,1].map(k=>{const du=(5.2+k*.9).toFixed(1),bg='-'+(k*2.6+i*.7).toFixed(1)+'s';return `<g><circle class="halo" r="7"/><circle class="dot" r="3.2"/><animateMotion dur="${du}s" begin="${bg}" repeatCount="indefinite" path="${d}"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.12;.88;1" dur="${du}s" begin="${bg}" repeatCount="indefinite"/></g>`}).join('');
+      out+=`<g class="pg" data-k="${key}" data-t="${dir<0?'f':'g'}"><path class="rl base" pathLength="1" d="${d}" style="--dl:${(.2+t*.14).toFixed(2)}s"/><path class="rl flow" d="${d}"/>${dots}</g>`;t++;
+      pins+=`<circle class="pin" cx="${f1(x)}" cy="${f1(y)}" r="4.5"/><circle class="pin" cx="${f1(px)}" cy="${f1(py)}" r="3.5"/>`;
+    };
+    tops.forEach((el,i)=>add(el,i,tops.length,-1,'f'+i));bots.forEach((el,i)=>add(el,i,bots.length,1,'g'+i));
+    svg.innerHTML=out+pins;
+  };
+  const focus=(key,type)=>{svg.classList.add('has-focus');box.classList.add('focus');$$('.pg',svg).forEach(g=>{const same=g.dataset.k===key;g.classList.toggle('on',same);g.classList.toggle('soft',!same&&g.dataset.t!==type)})};
+  const blur=()=>{svg.classList.remove('has-focus');box.classList.remove('focus');$$('.pg',svg).forEach(g=>g.classList.remove('on','soft'))};
+  [...tops,...bots].forEach(el=>{const k=el.dataset.k,ty=k[0],a=()=>focus(k,ty);el.addEventListener('mouseenter',a);el.addEventListener('focus',a);el.addEventListener('mouseleave',blur);el.addEventListener('blur',blur)});
+  let raf=0;const sched=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(draw)};
+  let ro=null;if('ResizeObserver' in window){ro=new ResizeObserver(sched);ro.observe(box)}else window.addEventListener('resize',sched);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(sched);
+  sched();
+  return()=>{cancelAnimationFrame(raf);if(ro)ro.disconnect();else window.removeEventListener('resize',sched)};
+}
+
+/* ===== harvest calendar wheel ===== */
+function calendarHtml(){
+  const now=new Date(),cm=now.getMonth();
+  const rows=state.products.map(p=>({p,m:seasonMask(p.season)})).filter(r=>r.m);
+  if(!rows.length)return '';
+  const n=rows.length,cx=320,cy=320,step=Math.min(16,140/n),th=step*.72,r0=236,f=v=>v.toFixed(2);
+  const P=(r,a)=>{const t=(a-90)*Math.PI/180;return [cx+r*Math.cos(t),cy+r*Math.sin(t)]};
+  const nowCount=rows.filter(r=>r.m[cm]).length,rl=r0-(n-1)*step,hole=rl-th/2-10,rOut=r0+th/2+8;
+  const dim=new Date(now.getFullYear(),cm+1,0).getDate(),ang=(cm+(now.getDate()-1)/dim)*30;
+  const seps=Array.from({length:12},(_,i)=>{const [x1,y1]=P(hole+4,i*30),[x2,y2]=P(rOut,i*30);return `<line class="hws" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`}).join('');
+  const labs=MON3.map((t,i)=>{const [x,y]=P(rOut+17,i*30+15);return `<text class="hwm${i===cm?' now':''}" x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="middle">${t}</text>`}).join('');
+  const [w1x,w1y]=P(rOut,cm*30),[w2x,w2y]=P(rOut,cm*30+30),[w3x,w3y]=P(hole+4,cm*30+30),[w4x,w4y]=P(hole+4,cm*30);
+  const wedge=`<path class="hwn" d="M${f(w1x)} ${f(w1y)}A${f(rOut)} ${f(rOut)} 0 0 1 ${f(w2x)} ${f(w2y)}L${f(w3x)} ${f(w3y)}A${f(hole+4)} ${f(hole+4)} 0 0 0 ${f(w4x)} ${f(w4y)}Z"/>`;
+  const rings=rows.map(({p,m},i)=>{
+    const r=r0-i*step,[c1,c2]=deepColor(p.tint);let arcs='';
+    if(m.every(x=>x))arcs=`<circle class="hwr" cx="${cx}" cy="${cy}" r="${f(r)}" pathLength="1" transform="rotate(-90 ${cx} ${cy})"/>`;
+    else seasonRuns(m).forEach(([s,l])=>{const ins=(th/2)/r*180/Math.PI+.5,a1=s*30+ins,a2=(s+l)*30-ins;if(a2<=a1)return;const [x1,y1]=P(r,a1),[x2,y2]=P(r,a2);arcs+=`<path class="hwr" pathLength="1" d="M${f(x1)} ${f(y1)}A${f(r)} ${f(r)} 0 ${a2-a1>180?1:0} 1 ${f(x2)} ${f(y2)}"/>`});
+    return `<g class="hwg" data-i="${i}" style="--c:${c1};--cd:${c2};--d:${(i*.09).toFixed(2)}s"><circle class="hwt" cx="${cx}" cy="${cy}" r="${f(r)}"/>${arcs}</g>`;
+  }).join('');
+  const [nx1,ny1]=P(hole+2,0),[nx2,ny2]=P(rOut+2,0);
+  const needle=`<g class="needle" style="--a:${ang.toFixed(1)}deg"><line x1="${f(nx1)}" y1="${f(ny1)}" x2="${f(nx2)}" y2="${f(ny2)}"/><circle class="nh" cx="${f(nx2)}" cy="${f(ny2)}" r="9"/><circle class="nd" cx="${f(nx2)}" cy="${f(ny2)}" r="4.5"/></g>`;
+  const info=rows.map(({p,m})=>({n:p.name,r:runLabel(m),now:!!m[cm]}));
+  const legend=rows.map(({p,m},i)=>{const [c1,c2]=deepColor(p.tint);return `<li><a class="hl-row" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}" data-i="${i}" style="--c:${c1};--cd:${c2}"><i class="hl-dot"></i><span class="hl-n">${esc(p.name)}</span><span class="hl-m">${esc(runLabel(m))}</span><i class="hl-now${m[cm]?' on':''}" title="${m[cm]?'In season now':''}"></i></a></li>`}).join('');
+  return `<section class="sec wrap" id="calendar"><div class="sec-head" data-reveal><h2>Harvest calendar</h2><p class="lead" style="max-width:38ch">See when each product is at its best. The current month is highlighted.</p></div>
+  <div class="hcal"><div class="hl-wrap" data-reveal><div class="hl-head"><b data-count="${nowCount}">${nowCount}</b><span>products in season<br><em>${MONF[cm]}</em></span></div><ul class="hl" id="hl">${legend}</ul></div>
+  <div class="hw" id="hw" data-reveal data-info="${esc(JSON.stringify(info))}" data-def="${esc(JSON.stringify({m:MONF[cm],c:nowCount}))}"><svg viewBox="0 0 640 640" style="--th:${f(th)}" role="img" aria-label="Harvest calendar wheel"><circle class="hwo" cx="${cx}" cy="${cy}" r="${f(rOut+2)}"/>${wedge}${seps}${labs}${rings}${needle}</svg>
+  <div class="hw-c" id="hwC" style="--hw:${((hole*2*.86)/640*100).toFixed(1)}%"><small>Now</small><b>${MONF[cm]}</b><span>${nowCount} in season</span></div></div></div></section>`;
+}
+function initWheel(){
+  const hw=$('#hw');if(!hw)return null;
+  const gs=$$('.hwg',hw),rows=$$('.hl-row'),c=$('#hwC',hw);
+  let info=[],def={};try{info=JSON.parse(hw.dataset.info);def=JSON.parse(hw.dataset.def)}catch(e){return null}
+  const focus=i=>{hw.classList.add('has-focus');gs.forEach(g=>g.classList.toggle('on',+g.dataset.i===i));rows.forEach(r=>r.classList.toggle('on',+r.dataset.i===i));const x=info[i];if(x)c.innerHTML=`<small>${x.now?'In season now':'Out of season'}</small><b>${esc(x.n)}</b><span>${esc(x.r)}</span>`};
+  const reset=()=>{hw.classList.remove('has-focus');gs.forEach(g=>g.classList.remove('on'));rows.forEach(r=>r.classList.remove('on'));c.innerHTML=`<small>Now</small><b>${esc(def.m)}</b><span>${def.c} in season</span>`};
+  gs.forEach(g=>{g.addEventListener('mouseenter',()=>focus(+g.dataset.i));g.addEventListener('mouseleave',reset)});
+  rows.forEach(r=>{r.addEventListener('mouseenter',()=>focus(+r.dataset.i));r.addEventListener('focus',()=>focus(+r.dataset.i));r.addEventListener('mouseleave',reset);r.addEventListener('blur',reset)});
+  return null;
+}
+
+/* ===== cta: full-bleed agent deck ===== */
+function ctaHtml(){
+  const A=state.agents;
+  const cards=A.map(a=>`<div class="ac2"><div class="ac2-h">${agentLogo(a)}<div><b>${esc(a.name)}</b><small>${flag(a.code)}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</small></div></div><p>${esc(a.territory)}</p><div class="ac2-ph"><span class="ac2-ic">${ico('phone')}<i></i></span><span>${esc(a.phone)}</span></div><div class="ac2-b"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(a.whatsapp||a.phone)}" target="_blank" rel="noopener">WhatsApp</a></div></div>`).join('');
+  return `<section class="cta2 grain"><div class="wrap cta2-in"><div class="cta2-l"><h2>Buy through an authorised agent</h2><p>Our agents handle pricing, samples, paperwork and delivery in your region. Pick the one closest to you.</p>
+  <div class="cta2-btns"><a class="btn btn-primary" href="#/agents">See all agents</a><a class="btn btn-ghost" href="#/contact">Become an agent</a></div>
+  ${A.length?`<div class="cta2-avs"><span class="avs">${A.slice(0,5).map(agentLogo).join('')}</span><span>${A.length} authorised agent${A.length===1?'':'s'} ready to help</span></div>`:''}</div>
+  <div class="cta2-r"><i class="cta2-ring"></i><i class="cta2-ring r2"></i><i class="cta2-ring r3"></i><div class="cta2-deck" id="ctaDeck">${cards}</div></div></div></section>`;
+}
+function initCtaDeck(){
+  const deck=$('#ctaDeck');if(!deck)return null;
+  const cs=$$('.ac2',deck),n=cs.length;if(!n)return null;
+  let idx=0;const prev=cs.map(()=>0);
+  const render=first=>cs.forEach((c,k)=>{
+    const o=((k-idx)%n+n)%n,q=(n>2&&o===n-1)?-1:Math.min(o,3);
+    if(!first&&Math.abs(q-prev[k])>2){c.classList.add('jump');requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.remove('jump')))}
+    prev[k]=q;c.style.setProperty('--q',q);c.style.zIndex=String(q<0?12:10-q);c.classList.toggle('out',q<0);c.classList.toggle('back',q>2);
+  });
+  render(true);
+  const t=(REDUCED||n<2)?null:setInterval(()=>{idx=(idx+1)%n;render()},3800);
+  return()=>{if(t)clearInterval(t)};
+}
+
+/* ===== faq ===== */
+function faqHtml(){
+  const c=S().company,FAQ=state.faqs||[];
+  if(!FAQ.length)return '';
+  const wa=S().socials.whatsapp;
+  return `<section class="sec wrap faq-sec"><div class="faq-grid"><aside class="faq-aside" data-reveal><div class="faq-card grain"><span class="faq-mark" aria-hidden="true">?</span><h2>Questions buyers ask</h2><p>Can\u2019t find your answer? Write to us or call, and we will reply within one working day.</p>
+  <div class="faq-ctas"><a class="btn btn-primary" href="mailto:${esc(c.email)}">${ico('mail')}Email us</a><a class="btn btn-ghost" href="${tel(c.phone)}">${ico('phone')}Call</a>${wa?`<a class="btn btn-ghost" href="${esc(wa)}" target="_blank" rel="noopener">${ico('wa')}WhatsApp</a>`:''}</div></div></aside>
+  <div class="faq-main" data-reveal><div class="fqs" id="fqs">${FAQ.map((f,i)=>`<div class="fq${i===0?' open':''}"><button class="fq-h" data-act="fq" aria-expanded="${i===0}"><span>${esc(f.question)}</span><i class="pm" aria-hidden="true"></i></button><div class="fq-a"><div><p>${esc(f.answer)}</p></div></div></div>`).join('')}</div></div></div></section>`;
+}
+
+/* ===== journey: field to pallet ===== */
+function journeyHtml(){
+  const steps=[['leaf','Harvest','Picked at peak ripeness by the growers we work with, close to each factory.'],['search','Sort and grade','Optical and hand sorting by size, colour and quality, with samples tested in our lab.'],['box','Pack and label','Packed on site in the format you need, with a lot number that stays with the product.'],['route','Ship and deliver','Sent by sea or road, in refrigerated containers where needed, and handed to your agent.']];
+  return `<section class="jn grain" data-reveal><div class="jn-bg" aria-hidden="true"><img src="assets/img/story.jpg" data-fb="${esc(REMOTE.story)}" alt="" loading="lazy" data-photo></div>
+  <div class="wrap jn-in"><div class="jn-head"><h2>From field to pallet</h2><p class="lead">Four steps, the same care at every one.</p></div>
+  <div class="jn-track"><i class="jn-line" aria-hidden="true"></i><i class="jn-dot" aria-hidden="true"></i><ol class="jn-row">${steps.map(([i,t,d],k)=>`<li class="jn-col" style="--k:${k}"><span class="jn-node">${ico(i)}</span><span class="jn-stem" aria-hidden="true"></span><div class="jn-card"><h3>${t}</h3><p>${d}</p></div></li>`).join('')}</ol></div></div></section>`;
+}
+
+
 
 function initAcc(){
   const arts=$$('.acc-art');if(!arts.length)return null;
@@ -378,54 +584,6 @@ function initAcc(){
   });
   return()=>cleanups.forEach(c=>c());
 }
-
-function journeyHtml(){
-  const steps=[['box','We pack','Every lot is packed and labelled at the factory that grew it.'],['truck','We ship','Our own logistics or trusted carriers move it to your region.'],['route','Agent delivers','A named agent completes customs, storage and last-mile delivery.'],['check','You receive','Signed, dated, traceable back to the harvest lot.']];
-  return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>How an order travels</h2></div>
-  <ul class="steps" data-stagger>${steps.map(([i,t,d])=>`<li data-reveal><div class="st-ico">${ico(i)}</div><h3>${t}</h3><p>${d}</p></li>`).join('')}</ul></section>`;
-}
-
-function fxHtml(){
-  const F=state.factories;
-  return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>Our factories</h2><a class="link" href="#/factories">All factories${ico('arrow')}</a></div>
-  <div class="fx-grid" data-stagger>${F.slice(0,4).map((f,i)=>fcard(f,i)).join('')}</div></section>`;
-}
-function initFx(){return null}
-
-function valuesHtml(){
-  const items=[['leaf','Grown close to the source','Every product is packed at the same factory that grows or presses it.'],['route','Delivered by people you can call','Every order goes through an authorised agent who knows your market, your paperwork and your delivery window.']];
-  return `<section class="sec wrap"><div class="vals-grid" data-stagger>${items.map(([i,t,d])=>`<div class="val" data-reveal><div class="st-ico">${ico(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div></section>`;
-}
-
-function faqHtml(){
-  const FAQ=state.faqs||[];
-  if(!FAQ.length)return '';
-  return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>Frequently asked</h2></div>
-  <div class="faqs" id="fqs" data-stagger>${FAQ.map(f=>`<details class="fq" data-reveal><summary class="fq-h" aria-expanded="false" data-act="fq"><span>${esc(f.question)}</span><span class="pm"></span></summary><div class="fq-b"><p>${esc(f.answer)}</p></div></details>`).join('')}</div></section>`;
-}
-
-function matchProduct(text){
-  const t=String(text||'').toLowerCase();
-  return state.products.find(p=>t.includes(p.name.toLowerCase()));
-}
-function ticketHtml(a,i){return `<article class="tk" style="--i:${i}">${a.title}</article>`}
-function noticeHtml(a,i){return `<article class="nc" style="--i:${i}">${a.title}</article>`}
-function homeOffersHtml(){
-  const A=activeOffers();
-  if(!A.length)return '';
-  return `<section class="sec wrap"><div class="sec-head" data-reveal><h2>Current offers</h2><a class="link" href="#/contact/offers">All offers${ico('arrow')}</a></div>
-  <div class="off-grid" data-stagger>${A.slice(0,3).map(offerCard).join('')}</div></section>`;
-}
-function initOffers(){return null}
-
-function ctaHtml(){
-  const A=state.agents;
-  return `<section class="cta2 grain"><div class="wrap cta2-in"><div class="cta2-l"><h2>Buy through an authorised agent</h2><p>Our agents handle pricing, samples, paperwork and delivery in your region. Pick the one closest to you.</p>
-  ${A.length?`<div class="cta2-avs"><span class="avs">${A.slice(0,5).map(agentLogo).join('')}</span><span>${A.length} authorised agent${A.length===1?'':'s'} ready to help</span></div>`:''}</div>
-  <a class="btn btn-primary" href="#/agents">Find your agent${ico('arrow')}</a></div></section>`;
-}
-function initCtaDeck(){return null}
-
 function pageHome(){
   const c=S().company,slides=heroSlides();
   return `<section class="hero on-hero" id="hero"><div class="hero-bg"></div>
@@ -443,6 +601,7 @@ function pageHome(){
   ${journeyHtml()}
   ${valuesHtml()}
   ${routeHtml()}
+  ${calendarHtml()}
   ${ctaHtml()}
   ${faqHtml()}`;
 }
