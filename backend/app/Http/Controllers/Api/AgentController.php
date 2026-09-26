@@ -74,6 +74,10 @@ class AgentController extends Controller
             'email' => ['nullable', 'email'],
             'hours' => ['nullable', 'string'],
             'logo' => ['nullable', 'string'],
+            'video' => ['nullable', 'string'],
+            'gallery' => ['nullable', 'array'],
+            'gallery.*' => ['string'],
+            'bio' => ['nullable', 'string'],
         ]);
     }
 
@@ -82,6 +86,7 @@ class AgentController extends Controller
         return array_merge([
             'contact' => '', 'role' => '', 'code' => 'KU', 'city' => '',
             'territory' => '', 'whatsapp' => null, 'email' => '', 'hours' => '',
+            'gallery' => [], 'bio' => '',
         ], array_filter($data, fn ($v) => $v !== null));
     }
 }

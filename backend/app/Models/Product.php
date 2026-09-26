@@ -9,7 +9,7 @@ class Product extends Model
 {
     protected $fillable = [
         'slug', 'name', 'category', 'country', 'factory_id', 'price', 'unit', 'discount',
-        'art', 'tint', 'image', 'short', 'description', 'features',
+        'art', 'tint', 'image', 'image2', 'image3', 'short', 'description', 'features',
         'packaging', 'shelf_life', 'moq', 'season',
     ];
 

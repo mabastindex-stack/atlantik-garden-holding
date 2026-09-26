@@ -75,6 +75,11 @@ class FactoryController extends Controller
             'capacity' => ['nullable', 'string'],
             'certs' => ['nullable', 'array'],
             'image' => ['nullable', 'string'],
+            'video' => ['nullable', 'string'],
+            'gallery' => ['nullable', 'array'],
+            'gallery.*' => ['string'],
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
             'description' => ['nullable', 'string'],
         ]);
     }
@@ -84,7 +89,7 @@ class FactoryController extends Controller
         return array_merge([
             'code' => 'ES', 'city' => '', 'agency' => '', 'director' => '',
             'since' => '', 'employees' => '', 'capacity' => '', 'certs' => [],
-            'description' => '',
+            'gallery' => [], 'description' => '',
         ], array_filter($data, fn ($v) => $v !== null));
     }
 }

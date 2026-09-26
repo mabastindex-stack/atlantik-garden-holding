@@ -9,13 +9,17 @@ class Factory extends Model
 {
     protected $fillable = [
         'slug', 'country', 'code', 'city', 'agency', 'director',
-        'since', 'employees', 'capacity', 'certs', 'image', 'description',
+        'since', 'employees', 'capacity', 'certs', 'image', 'video', 'gallery',
+        'lat', 'lng', 'description',
     ];
 
     protected function casts(): array
     {
         return [
             'certs' => 'array',
+            'gallery' => 'array',
+            'lat' => 'float',
+            'lng' => 'float',
         ];
     }
 

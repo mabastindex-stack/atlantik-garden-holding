@@ -59,14 +59,17 @@ const I={
   factory:'<path d="M3 21V10l5-3v3l5-3v3l5-3v11"/><path d="M3 21h18"/><path d="M7 21v-3.5M12 21v-3.5M17 21v-3.5"/>',
   users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9.3" r="2.4"/><path d="M15.7 14.3c2.7.5 4.3 2.4 4.3 5.7"/>',
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.4 2.5 3.7 5.7 3.7 9s-1.3 6.5-3.7 9c-2.4-2.5-3.7-5.7-3.7-9s1.3-6.5 3.7-9z"/>',
-  tag:'<path d="M3 12.5L11.5 4H19v7.5L10.5 21z"/><circle cx="15" cy="8" r="1.5"/>'
+  tag:'<path d="M3 12.5L11.5 4H19v7.5L10.5 21z"/><circle cx="15" cy="8" r="1.5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pin:'<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  film:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 5v14M16 5v14M3 9h5M3 15h5M16 9h5M16 15h5"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],me:null};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -162,9 +165,14 @@ function fieldHtml(f,val){
     }
     case'color':ctl=`<input id="${id}" name="${f.k}" type="color" value="${esc(val||'#CFE3B5')}">`;break;
     case'image':ctl=`<div class="imgpick" data-k="${f.k}"><div class="imgprev">${val?`<img src="${esc(val)}" alt="">`:'<span>No image</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="img-clear">Remove</button><span class="img-status">Uploading…</span></div></div>`;break;
+    case'video':ctl=`<div class="imgpick vidpick" data-k="${f.k}"><div class="imgprev">${val?`<video src="${esc(val)}" muted playsinline loop></video>`:'<span>No video</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose video<input type="file" accept="video/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="vid-clear">Remove</button><span class="img-status">Uploading…</span></div></div>`;break;
+    case'gallery':ctl=`<div class="gpick" data-k="${f.k}"><div class="gprev">${galleryThumbs(val,f.k)}</div><label class="btn btn-ghost btn-sm">Add photo<input type="file" accept="image/*" hidden></label></div>`;break;
     default:ctl=`<input id="${id}" name="${f.k}" type="${f.t||'text'}" value="${esc(val)}"${f.step?` step="${f.step}"`:''}${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}${f.ph?` placeholder="${esc(f.ph)}"`:''}${f.list?` list="dl_${id}"`:''}${f.req?' required':''}>${f.list?`<datalist id="dl_${id}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:''}`;
   }
   return `<div class="field${f.wide?' wide':''}">${label}${ctl}${f.hint?`<small>${esc(f.hint)}</small>`:''}</div>`;
+}
+function galleryThumbs(arr,k){
+  return (arr||[]).map((u,i)=>`<span class="gth"><img src="${esc(u)}" alt=""><button type="button" class="gdel" data-act="g-del" data-k="${esc(k)}" data-i="${i}" aria-label="Remove photo">${ico('close')}</button></span>`).join('')||'<span class="g-empty">No photos yet</span>';
 }
 /* ================= CUSTOM SELECT ================= */
 function xselectSync(select){
@@ -187,7 +195,8 @@ function xselectOpen(wrap){
 function collect(form,fields,ctx){
   const out={},fd=new FormData(form);
   fields.forEach(f=>{
-    if(f.t==='image'){out[f.k]=ctx.img[f.k]||'';return}
+    if(f.t==='image'||f.t==='video'){out[f.k]=ctx.img[f.k]||'';return}
+    if(f.t==='gallery'){out[f.k]=ctx.img[f.k]||[];return}
     const raw=fd.get(f.k),s=String(raw==null?'':raw);
     if(f.t==='lines')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean);
     else if(f.t==='pairs')out[f.k]=s.split('\n').map(x=>x.trim()).filter(Boolean).map(l=>{const i=l.indexOf('|');return i<0?{[f.keys[0]]:'',[f.keys[1]]:l}:{[f.keys[0]]:l.slice(0,i).trim(),[f.keys[1]]:l.slice(i+1).trim()}});
@@ -220,12 +229,23 @@ async function uploadImage(blob){
   if(!res.ok||!data.url)throw new Error(data.message||'Upload failed');
   return data.url;
 }
+async function uploadFile(file){
+  const token=getToken();
+  const fd=new FormData();fd.append('image',file,file.name||'upload');
+  const headers={Accept:'application/json'};if(token)headers.Authorization='Bearer '+token;
+  let res;
+  try{res=await fetch(API_BASE+'/upload',{method:'POST',headers,body:fd})}
+  catch(e){throw Object.assign(new Error('Could not reach the server'),{network:true})}
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||!data.url)throw new Error(data.message||'Upload failed');
+  return data.url;
+}
 
 /* ================= DASHBOARD DATA MODEL ================= */
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
-    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:''}),
+    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:'',image2:'',image3:''}),
     fields:(vals={})=>[
       {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'select',req:1,opts:state.categories.map(c=>[c.name,c.name])},
       {k:'country',l:'Country',t:'select',opts:[['','Not set'],...state.countries.map(c=>[c.code,c.name])]},
@@ -236,10 +256,12 @@ const ENT={
       {k:'features',l:'Highlights (one per line)',t:'lines',rows:4,wide:1},
       {k:'packaging',l:'Packaging',t:'text'},{k:'shelfLife',l:'Shelf life',t:'text'},{k:'moq',l:'Minimum order',t:'text'},{k:'season',l:'Season',t:'text'},
       {k:'tint',l:'Placeholder tint',t:'color'},
-      {k:'image',l:'Product photo',t:'image',wide:1,hint:'Upload a photo to preview it here. For the live site, save it as assets/img/products/<id>.jpg.'}],
+      {k:'image',l:'Photo 1',t:'image',wide:1,hint:'The three photos rotate automatically on the product page.'},
+      {k:'image2',l:'Photo 2',t:'image',wide:1},
+      {k:'image3',l:'Photo 3',t:'image',wide:1}],
     row:p=>{const c=state.countries.find(x=>x.code===p.country);return rowHtml('products',p.id,photo(p.image,p.name),p.name,`${p.category}${c?', '+c.name:''}, ${money(p.price)} per ${UNIT[p.unit]||p.unit}${p.discount?`, ${p.discount}% off`:''}`,p.tint)}},
   factories:{one:'factory',title:'Factories',apiPath:'/factories',items:()=>state.factories,label:f=>f.country,
-    make:()=>({id:uid('f-'),country:'',code:'ES',city:'',agency:'',director:'',since:'',employees:'',capacity:'',certs:[],description:'',image:''}),
+    make:()=>({id:uid('f-'),country:'',code:'ES',city:'',agency:'',director:'',since:'',employees:'',capacity:'',certs:[],description:'',image:'',video:'',gallery:[],lat:0,lng:0}),
     fields:()=>[
       {k:'code',l:'Country',t:'select',req:1,opts:state.countries.map(c=>[c.code,c.name])},
       {k:'agency',l:'Agency name',t:'text',req:1},{k:'director',l:'Director',t:'text'},
@@ -247,15 +269,22 @@ const ENT={
       {k:'employees',l:'Team size',t:'text'},{k:'capacity',l:'Capacity',t:'text',ph:'18,000 tonnes a year'},
       {k:'certs',l:'Certifications (one per line)',t:'lines',rows:3,wide:1},
       {k:'description',l:'About the factory (blank line between paragraphs)',t:'textarea',rows:6,wide:1},
-      {k:'image',l:'Cover photo',t:'image',wide:1}],
+      {k:'image',l:'Cover photo',t:'image',wide:1,hint:'Used as a fallback whenever no cover video is set.'},
+      {k:'video',l:'Cover video',t:'video',wide:1,hint:'Plays automatically at the top of the factory page. Leave empty to show the cover photo instead.'},
+      {k:'gallery',l:'Gallery photos',t:'gallery',wide:1,hint:'Shown below the cover on the factory page. Add as many as you like.'},
+      {k:'lat',l:'Location latitude',t:'number',step:'0.000001',min:-90,max:90},
+      {k:'lng',l:'Location longitude',t:'number',step:'0.000001',min:-180,max:180,hint:'Right-click the factory on Google Maps and choose the coordinates to copy them here. Leave both at 0 to hide the map.'}],
     row:f=>rowHtml('factories',f.id,flag(f.code),f.country,`${f.agency}, ${productsOf(f.id).length} products`)},
   agents:{one:'agent',title:'Agents',apiPath:'/agents',items:()=>state.agents,label:a=>a.name,
-    make:()=>({id:uid('a-'),name:'',contact:'',role:'',code:'KU',city:'',territory:'',phone:'',whatsapp:'',email:'',hours:'',logo:''}),
+    make:()=>({id:uid('a-'),name:'',contact:'',role:'',code:'KU',city:'',territory:'',phone:'',whatsapp:'',email:'',hours:'',logo:'',video:'',gallery:[],bio:''}),
     fields:()=>[
       {k:'name',l:'Agent or sales centre name',t:'text',req:1,wide:1},{k:'contact',l:'Contact person',t:'text'},{k:'role',l:'Role',t:'text'},
       {k:'code',l:'Country flag',t:'select',opts:state.countries.map(c=>[c.code,c.name])},{k:'city',l:'City',t:'text'},
       {k:'territory',l:'Territory covered',t:'text',wide:1},{k:'phone',l:'Phone',t:'tel',req:1},{k:'whatsapp',l:'WhatsApp number',t:'tel'},
-      {k:'email',l:'Email',t:'email'},{k:'hours',l:'Opening hours',t:'text'},{k:'logo',l:'Logo',t:'image',wide:1}],
+      {k:'email',l:'Email',t:'email'},{k:'hours',l:'Opening hours',t:'text'},{k:'logo',l:'Logo',t:'image',wide:1},
+      {k:'bio',l:'Profile description',t:'textarea',rows:5,wide:1,hint:'Shown on the agent’s profile page.'},
+      {k:'video',l:'Profile cover video',t:'video',wide:1,hint:'Plays automatically at the top of the agent’s profile page.'},
+      {k:'gallery',l:'Gallery photos',t:'gallery',wide:1}],
     row:a=>rowHtml('agents',a.id,flag(a.code),a.name,`${a.city}, ${a.phone}`)},
   notices:{one:'notice',title:'Notices and offers',apiPath:'/announcements',items:()=>state.announcements,label:a=>a.title,
     make:()=>({id:uid('n-'),type:'offer',title:'',body:'',discount:0,code:'',until:''}),
@@ -268,6 +297,10 @@ const ENT={
     make:()=>({id:'',question:'',answer:''}),
     fields:()=>[{k:'question',l:'Question',t:'text',req:1,wide:1},{k:'answer',l:'Answer',t:'textarea',rows:4,req:1,wide:1}],
     row:f=>rowHtml('faqs',f.id,ico('note'),f.question,f.answer.length>70?f.answer.slice(0,70)+'…':f.answer)},
+  milestones:{one:'milestone',title:'About page timeline',apiPath:'/milestones',items:()=>state.milestones,label:m=>m.year,
+    make:()=>({id:'',year:'',text:''}),
+    fields:()=>[{k:'year',l:'Year',t:'text',req:1,ph:'2024'},{k:'text',l:'What happened',t:'textarea',rows:3,req:1,wide:1}],
+    row:m=>rowHtml('milestones',m.id,ico('clock'),m.year,m.text.length>70?m.text.slice(0,70)+'…':m.text)},
   slides:{one:'photo',title:'Home cover photos',apiPath:'/hero-slides',items:()=>state.slides,label:s=>s.caption||'Cover photo',
     make:()=>({id:'',image:'',caption:''}),
     fields:()=>[{k:'image',l:'Photo',t:'image',wide:1,hint:'Shown full-width at the top of the Home page. Add more than one and they rotate automatically.'},{k:'caption',l:'Caption (optional)',t:'text',wide:1}],
@@ -339,7 +372,8 @@ const SITE=[
     {k:'company.aboutLead',l:'Page intro line',t:'text',wide:1,ph:'Leave blank to reuse the Home page headline'},
     {k:'company.aboutImage',l:'Photo',t:'image',wide:1},
     {k:'company.story',l:'Company story (blank line between paragraphs)',t:'textarea',rows:7,wide:1},
-    {k:'company.milestones',l:'Milestones (year | text, one per line)',t:'pairs',keys:['y','t'],rows:6,wide:1}]],
+    {k:'company.hqLat',l:'Head office latitude',t:'number',step:'0.000001',min:-90,max:90},
+    {k:'company.hqLng',l:'Head office longitude',t:'number',step:'0.000001',min:-180,max:180,hint:'Right-click your office on Google Maps and choose the coordinates to copy them here. Leave both at 0 to hide the map. The timeline below (“How we got here”) is now managed on its own “About page timeline” page.'}]],
   ['Products page',[
     {k:'company.productsTitle',l:'Title',t:'text',ph:'Our harvest'},
     {k:'company.productsLead',l:'Intro line',t:'text',wide:1,ph:'Everything we grow, pack and ship…'}]],
@@ -385,7 +419,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['milestones','About page timeline'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -429,7 +463,8 @@ function pageDashboard(tab){
 function rerenderDash(){const m=$('#dmain');if(m){m.innerHTML=dashBody(current.arg)}}
 function openEntityForm(kind,id){
   const E=ENT[kind],cur=id?E.items().find(x=>x.id===id):null,vals=cur?clone(cur):E.make(),fields=E.fields(vals);
-  formCtx={img:{}};fields.filter(f=>f.t==='image').forEach(f=>formCtx.img[f.k]=vals[f.k]||'');
+  formCtx={img:{}};fields.filter(f=>f.t==='image'||f.t==='video').forEach(f=>formCtx.img[f.k]=vals[f.k]||'');
+  fields.filter(f=>f.t==='gallery').forEach(f=>formCtx.img[f.k]=(vals[f.k]||[]).slice());
   openSheet(`<form class="fpanel" data-form="${kind}" data-id="${esc(id||'')}" novalidate><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button><h2>${cur?'Edit':'Add'} ${E.one}</h2><div class="fbody2">${fields.map(f=>fieldHtml(f,vals[f.k])).join('')}</div><footer><button type="button" class="btn btn-ghost" data-act="close">Cancel</button><button class="btn btn-primary" type="submit">Save ${E.one}</button></footer></form>`,{cls:'wide'});
 }
 
@@ -485,6 +520,8 @@ document.addEventListener('click',e=>{
       }).catch(err=>toast(err.network?'Could not reach the server':errMsg(err,'Could not delete. Try again.')));
     });break}
     case'img-clear':{const box=t.closest('.imgpick');if(box){formCtx.img[box.dataset.k]='';$('.imgprev',box).innerHTML='<span>No image</span>'}break}
+    case'vid-clear':{const box=t.closest('.vidpick');if(box){formCtx.img[box.dataset.k]='';$('.imgprev',box).innerHTML='<span>No video</span>'}break}
+    case'g-del':{const k=d.k,i=+d.i;if(formCtx.img[k]){formCtx.img[k].splice(i,1);const box=t.closest('.gpick');if(box)$('.gprev',box).innerHTML=galleryThumbs(formCtx.img[k],k)}break}
     case'retry':location.reload();break;
   }
 });
@@ -512,7 +549,31 @@ document.addEventListener('change',e=>{
     return;
   }
   if(inp.type!=='file')return;
-  const box=inp.closest('.imgpick'),file=inp.files&&inp.files[0];if(!box||!file)return;
+  const file=inp.files&&inp.files[0];if(!file)return;
+  const vbox=inp.closest('.vidpick');
+  if(vbox){
+    const k=vbox.dataset.k,localUrl=URL.createObjectURL(file);
+    $('.imgprev',vbox).innerHTML=`<video src="${esc(localUrl)}" muted playsinline loop autoplay></video>`;
+    vbox.classList.add('uploading');
+    formCtx.uploading=(formCtx.uploading||0)+1;
+    uploadFile(file).then(url=>{formCtx.img[k]=url}).catch(()=>toast('Video upload failed. Try again.')).finally(()=>{formCtx.uploading--;vbox.classList.remove('uploading')});
+    return;
+  }
+  const gbox=inp.closest('.gpick');
+  if(gbox){
+    const k=gbox.dataset.k;
+    readImage(file,1200).then(({blob})=>{
+      gbox.classList.add('uploading');
+      formCtx.uploading=(formCtx.uploading||0)+1;
+      uploadImage(blob).then(url=>{
+        formCtx.img[k]=(formCtx.img[k]||[]).concat(url);
+        $('.gprev',gbox).innerHTML=galleryThumbs(formCtx.img[k],k);
+      }).catch(()=>toast('Image upload failed. Try again.')).finally(()=>{formCtx.uploading--;gbox.classList.remove('uploading')});
+    }).catch(()=>toast('That image could not be read'));
+    inp.value='';
+    return;
+  }
+  const box=inp.closest('.imgpick');if(!box)return;
   const k=box.dataset.k,max=/logo/.test(k)?420:/hero|aboutImage/.test(k)?1600:1000;
   readImage(file,max).then(({dataUrl,blob})=>{
     $('.imgprev',box).innerHTML=`<img src="${esc(dataUrl)}" alt="">`;
@@ -599,16 +660,16 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],slides:[],categories:[],countries:[],...cached,me:null};
+    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],...cached,me:null};
     initTheme();renderAdmin();
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),
+    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries,milestones]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),apiFetch('/milestones'),
     ]);
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data,milestones:milestones.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state={...fresh,me:state.me};saveCache(fresh);
     if(changed&&!sheetOpen){initTheme();renderAdmin()}

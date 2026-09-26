@@ -26,6 +26,10 @@ class FactoryResource extends JsonResource
             'capacity' => $this->capacity,
             'certs' => $this->certs,
             'image' => $this->image,
+            'video' => $this->video,
+            'gallery' => $this->gallery ?? [],
+            'lat' => $this->lat,
+            'lng' => $this->lng,
             'description' => $this->description,
         ];
     }

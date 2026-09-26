@@ -82,6 +82,8 @@ class ProductController extends Controller
             'art' => ['nullable', 'string'],
             'tint' => ['nullable', 'string'],
             'image' => ['nullable', 'string'],
+            'image2' => ['nullable', 'string'],
+            'image3' => ['nullable', 'string'],
             'short' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'features' => ['nullable', 'array'],

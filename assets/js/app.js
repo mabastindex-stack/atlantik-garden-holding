@@ -84,14 +84,15 @@ const I={
   telegram:'<path d="M20.5 4.5L3.5 11l5 2 2 5.5 3-3.5 4.5 3.3z"/><path d="M8.5 13l8-5.5"/>',
   linkedin:'<path d="M5 9.5h3V19H5zM6.5 4.8a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM11 9.5h2.8v1.3c.6-1 1.6-1.5 3-1.5 2.7 0 3.2 1.8 3.2 4V19h-3v-4.8c0-1.1 0-2.2-1.5-2.2S14 13 14 14.1V19h-3z"/>',
   tiktok:'<path d="M14 4v10.2a3.7 3.7 0 1 1-3.7-3.7"/><path d="M14 4c.4 2.5 2 4 4.6 4.3"/>',
-  youtube:'<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M10.5 9.5v5l4.2-2.5z"/>'
+  youtube:'<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M10.5 9.5v5l4.2-2.5z"/>',
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9.3" r="2.4"/><path d="M15.7 14.3c2.7.5 4.3 2.4 4.3 5.7"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[]};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[]};
 const S=()=>state.settings;
 const fById=id=>state.factories.find(f=>f.id===id);
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
@@ -177,7 +178,6 @@ function renderChrome(){
   $('#footer').innerHTML=`<i class="ftl" aria-hidden="true"></i><i class="fglow" aria-hidden="true"></i>${seas}
   <div class="wrap ft"><div class="ft-a"><a class="ft-lock" href="#/" aria-label="${esc(c.name)}, home"><span class="brand-mark">${c.logo?`<img src="${esc(c.logo)}" alt="">`:LOGO}</span><span class="ft-name" aria-hidden="true">${letters}</span></a><p class="ft-tag">${esc(c.tagline)}</p><div class="socials ft-soc">${socialsHtml()}</div></div>
   <div class="ft-b"><div class="ft-facs">${F.map(f=>`<a class="fchip" href="#/factories/${esc(f.id)}">${flag(f.code)}${esc(String(f.country).split(',')[0])}</a>`).join('')}</div>
-  <div class="ft-credit"><a href="https://wa.me/964${digits('07525229868').replace(/^0+/,'')}" target="_blank" rel="noopener"><i class="fc-br">&lt;/&gt;</i><span class="fc-txt">Crafted by <b class="fc-idx">Mabast<i>index</i></b></span><i class="fc-spark"></i></a></div>
   <div class="ft-ct"><a href="mailto:${esc(c.email)}">${ico('mail')}${esc(c.email)}</a><a href="${tel(c.phone)}">${ico('phone')}${esc(c.phone)}</a></div></div></div>`;
   const ft=$('#footer');
   if(ft&&'IntersectionObserver' in window){if(!ft.dataset.obs){ft.dataset.obs='1';new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){ft.classList.add('in');o.disconnect()}}),{threshold:.15}).observe(ft)}}else if(ft)ft.classList.add('in');
@@ -294,7 +294,7 @@ function offerCard(a){
 function agentCard(a,i){
   const h=hashStr(a.name)%360,wa=a.whatsapp||a.phone,now=new Date(),hh=now.getHours(),open=/\d/.test(a.hours||'')?true:true;
   return `<article class="ag2" id="${esc(a.id)}" style="--h:${h};--i:${i}"><div class="ag2-spine"><span class="ag2-code">${esc(a.code)}</span><span class="ag2-flagw">${flag(a.code)}</span><i class="ag2-dot" title="Usually available now"></i></div>
-  <div class="ag2-body"><div class="ag2-head">${agentLogo(a)}<div><h3>${esc(a.name)}</h3><div class="ag2-loc">${ico('pin')}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</div></div></div>
+  <div class="ag2-body"><a class="ag2-head" href="#/agents/${esc(a.id)}">${agentLogo(a)}<div><h3>${esc(a.name)}</h3><div class="ag2-loc">${ico('pin')}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</div></div></a>
   <div class="ag2-mid"><span class="ag2-person"><b>${esc(a.contact)}</b><small>${esc(a.role)}</small></span><span class="ag2-terr"><i>${ico('route')}</i>${esc(a.territory)}</span></div>
   <ul class="ag2-list"><li><a href="${tel(a.phone)}"><span class="ci">${ico('phone')}</span>${esc(a.phone)}</a></li><li><a href="mailto:${esc(a.email)}"><span class="ci">${ico('mail')}</span>${esc(a.email)}</a></li><li><span class="ci">${ico('clock')}</span>${esc(a.hours)}</li></ul>
   <div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div></article>`;
@@ -325,7 +325,8 @@ function pageFactory(id){
   const F=state.factories,idx=F.findIndex(f=>f.id===id),f=F[idx];if(!f)return notFound();
   const ps=productsOf(f.id),h=HUES[idx%HUES.length],ag=state.agents.find(x=>x.code===f.code);
   const prev=F[(idx-1+F.length)%F.length],next=F[(idx+1)%F.length];
-  return `<section class="fd" style="--h:${h}"><div class="fd-hero"><div class="fd-media">${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy">`:''}</div><i class="fd-orb a"></i><i class="fd-orb b"></i><span class="fd-scrim"></span>
+  const gal=(f.gallery||[]).filter(Boolean);
+  return `<section class="fd" style="--h:${h}"><div class="fd-hero"><div class="fd-media">${f.video?`<video class="photo" src="${esc(f.video)}"${f.image?` poster="${esc(f.image)}"`:''} autoplay muted loop playsinline></video>`:f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy">`:''}</div><i class="fd-orb a"></i><i class="fd-orb b"></i><span class="fd-scrim"></span>
   <div class="wrap fd-hero-in"><a class="fd-back link" href="#/factories">${ico('left')}Back to factories</a>
   <div class="fd-title"><span class="fd-flag">${flag(f.code)}</span><div><span class="fd-kick">Factory ${String(idx+1).padStart(2,'0')} of ${String(F.length).padStart(2,'0')}</span><h1>${esc(f.agency)}</h1><p>${esc(f.city)}, ${esc(String(f.country).split(',')[0])}</p></div></div></div>
   <span class="fd-stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="fdSeal" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#fdSeal" startOffset="0">${esc(f.agency)} \u2022 Est ${esc(f.since)} \u2022 </textPath></text></svg><b>${esc(f.code)}</b></span></div>
@@ -334,7 +335,10 @@ function pageFactory(id){
   <div class="fd-aside">${f.director?`<div class="fd-card fd-person"><span class="alogo" style="--h:${h}">${esc((f.director||'?')[0])}</span><div><small>Director</small><b>${esc(f.director)}</b></div></div>`:''}
   ${(f.certs||[]).length?`<div class="fd-card fd-certs"><h3>Certifications</h3><div class="tags">${f.certs.map(x=>`<span class="chip tag">${ico('check')}${esc(x)}</span>`).join('')}</div></div>`:''}
   ${ag?`<div class="fd-card fd-agent">${agentLogo(ag)}<div><small>Authorised agent</small><b>${esc(ag.name)}</b></div></div>`:''}
+  ${mapHtml(f.lat,f.lng,f.agency+', '+esc(f.city))}
   <div class="fd-pass"><span class="fd-stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="fdSeal2" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#fdSeal2" startOffset="0">Authorised \u2022 Since ${esc(f.since)} \u2022 </textPath></text></svg><b>${esc(f.code)}</b></span><div><small>Team</small><b>${esc(f.employees)}</b></div></div></div></div>
+  ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Inside the factory</h2></div></div>
+  <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
   ${ps.length?`<div class="fd-prod"><div class="sec-head"><h2>Products from this factory</h2></div><div class="pgrid px-grid" data-stagger>${ps.map(pcardX).join('')}</div></div>`:''}
   <div class="fd-pager"><a class="fdp" href="#/factories/${esc(prev.id)}"><span class="fdp-ic">${ico('left')}</span><span class="fdp-flag">${flag(prev.code)}</span><span><small>Previous</small><b>${esc(String(prev.country).split(',')[0])}</b></span></a>
   <a class="fdp fdp-next" href="#/factories/${esc(next.id)}"><span class="fdp-ic">${ico('right')}</span><span class="fdp-flag">${flag(next.code)}</span><span><small>Next</small><b>${esc(String(next.country).split(',')[0])}</b></span></a></div></div></section>`;
@@ -345,6 +349,13 @@ const words=t=>String(t).split(/\s+/).filter(Boolean).map((w,i)=>`<span class="w
 const photo=(src,alt,fb)=>{const u=src||fb;return `<span class="ph" aria-hidden="true"><b>${esc(((alt||'').trim()[0])||'')}</b></span>${u?`<img class="photo" src="${esc(u)}" alt="${esc(alt)}" loading="lazy" decoding="async" data-photo${fb&&src&&src!==fb?` data-fb="${esc(fb)}"`:''}>`:''}`};
 const fphoto=f=>`<span class="fph grain" aria-hidden="true"><b>${esc(String(f.country||'').split(',')[0])}</b></span>${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy" decoding="async" data-photo>`:''}`;
 const notFound=()=>`<section class="wrap page-head"><h1>Page not found</h1><p class="lead">That page doesn’t exist.</p><p style="margin-top:24px"><a class="btn btn-primary" href="#/">Back to home</a></p></section>`;
+function mapHtml(lat,lng,label){
+  lat=Number(lat);lng=Number(lng);
+  if(!lat||!lng)return '';
+  const d=0.045,bbox=`${(lng-d).toFixed(5)},${(lat-d).toFixed(5)},${(lng+d).toFixed(5)},${(lat+d).toFixed(5)}`;
+  const src=`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+  return `<div class="fd-card loc-map"><iframe class="loc-map-frame" src="${esc(src)}" loading="lazy" title="${esc(label||'Location map')}" referrerpolicy="no-referrer-when-downgrade"></iframe><a class="loc-map-link" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">${ico('pin')}Open in Google Maps${ico('arrow')}</a></div>`;
+}
 
 /* ================= HERO ================= */
 const heroSlides=()=>(state.slides||[]).map(s=>[s.image,undefined,s.caption]);
@@ -763,8 +774,10 @@ function pageHome(){
 
 function productSheet(p){
   const f=fById(p.factoryId);
+  const slides=[p.image,p.image2,p.image3].filter(Boolean);
+  if(!slides.length&&p.imageFb)slides.push(p.imageFb);
   return `<div class="fd-wrap"><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button>
-  <div class="fd-media">${photo(p.image,p.name,p.imageFb)}${p.discount?`<span class="badge">${+p.discount}% off</span>`:''}</div>
+  <div class="fd-media pd-media">${slides.length?slides.map((u,i)=>`<div class="pd-slide${i===0?' on':''}">${photo(u,p.name)}</div>`).join(''):photo(p.image,p.name,p.imageFb)}${slides.length>1?`<div class="pd-dots">${slides.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>`:''}${p.discount?`<span class="badge">${+p.discount}% off</span>`:''}</div>
   <div class="fd-body"><h2>${esc(p.name)}</h2><p class="lead">${esc(p.short)}</p>
   <div class="fd-price">${priceHtml(p)}</div>
   <p>${esc(p.description)}</p>
@@ -793,6 +806,22 @@ function pageAgents(){
   <div id="agrid" class="agrid ag2-grid" data-stagger>${agentsGridHtml()}</div></section>`;
 }
 
+function pageAgent(id){
+  const A=state.agents,idx=A.findIndex(x=>x.id===id),a=A[idx];if(!a)return notFound();
+  const h=hashStr(a.name)%360,prev=A[(idx-1+A.length)%A.length],next=A[(idx+1)%A.length];
+  const gal=(a.gallery||[]).filter(Boolean),wa=a.whatsapp||a.phone;
+  return `<section class="fd" style="--h:${h}"><div class="fd-hero"><div class="fd-media">${a.video?`<video class="photo" src="${esc(a.video)}"${a.logo?` poster="${esc(a.logo)}"`:''} autoplay muted loop playsinline></video>`:''}</div><i class="fd-orb a"></i><i class="fd-orb b"></i><span class="fd-scrim"></span>
+  <div class="wrap fd-hero-in"><a class="fd-back link" href="#/agents">${ico('left')}Back to agents</a>
+  <div class="fd-title"><span class="fd-flag">${flag(a.code)}</span><div><span class="fd-kick">Agent ${String(idx+1).padStart(2,'0')} of ${String(A.length).padStart(2,'0')}</span><h1>${esc(a.name)}</h1><p>${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</p></div></div></div></div>
+  <div class="wrap fd-stripwrap"><dl class="fd-strip"><div><dt>${ico('users')}Contact</dt><dd>${esc(a.contact||'—')}</dd></div><div><dt>${ico('route')}Territory</dt><dd>${esc(a.territory||'—')}</dd></div><div><dt>${ico('clock')}Hours</dt><dd>${esc(a.hours||'—')}</dd></div><div><dt>${ico('phone')}Phone</dt><dd>${esc(a.phone)}</dd></div></dl></div>
+  <div class="wrap fd-body"><div class="fd-two"><div class="fd-prose">${a.bio?paras(a.bio):`<p>${esc(a.name)} is our authorised sales centre for ${esc(a.territory||a.city)}.</p>`}</div>
+  <div class="fd-aside"><div class="fd-card fd-person">${agentLogo(a)}<div><small>${esc(a.role||'Contact')}</small><b>${esc(a.contact||a.name)}</b></div></div>
+  <div class="fd-card"><h3>Get in touch</h3><div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div></div></div>
+  ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Meet the team</h2></div></div>
+  <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
+  <div class="fd-pager"><a class="fdp" href="#/agents/${esc(prev.id)}"><span class="fdp-ic">${ico('left')}</span><span class="fdp-flag">${flag(prev.code)}</span><span><small>Previous</small><b>${esc(prev.name)}</b></span></a>
+  <a class="fdp fdp-next" href="#/agents/${esc(next.id)}"><span class="fdp-ic">${ico('right')}</span><span class="fdp-flag">${flag(next.code)}</span><span><small>Next</small><b>${esc(next.name)}</b></span></a></div></div></section>`;
+}
 function agentsGridHtml(){
   const q=(ui.aq||'').trim().toLowerCase();
   const list=state.agents.filter(a=>agentsMatch(a,q));
@@ -850,23 +879,24 @@ function pageAbout(){
     ['route','Delivered in person','No call centres. Every order is answered by an agent who knows your market by name.',state.agents.length,'authorised agents on call']];
   const letters=[...String(c.name||'')].map((ch,i)=>ch===' '?'<span class="ab-l sp"></span>':`<span class="ab-l" style="--i:${i}">${esc(ch)}</span>`).join('');
   const gal=(state.slides||[]).filter(s=>s.image).slice(0,4);
-  const homeAg=state.agents.find(x=>x.name===a.name);
   const certs=[...new Set(F.flatMap(f=>f.certs||[]))];
+  const milestones=state.milestones||[];
   return `<section class="ab-hero grain"><div class="ab-hero-bg" aria-hidden="true">${heroImgs.map((u,i)=>`<div class="ab-slide${i===0?' on':''}" style="--dl:-${i*7}s">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:''}</div>`).join('')}</div>${wavesHtml('b')}
   <div class="wrap ab-hero-in"><span class="ab-mark">${c.logo?`<img src="${esc(c.logo)}" alt="">`:LOGO}</span>
   <h1 class="ab-name" aria-label="${esc(c.name)}">${letters}</h1><p class="lead ab-tag">${esc(c.aboutLead||c.tagline||'')}</p>
   <ul class="ab-stats">${[[years,'Years growing'],[F.length,'Factories'],[ncty,'Countries'],[state.products.length,'Products']].map(([n,l])=>`<li><b data-count="${n}">${n}</b><span>${esc(l)}</span></li>`).join('')}</ul></div></section>
   <section class="wrap ab-story"><div class="ab-story-grid"><div class="ab-drop-wrap" data-reveal><div class="ab-founded"><b>${since}</b><span>Founded</span><i>${years}\u00A0yr${years===1?'':'s'}\u00A0of\u00A0service</i></div><div class="prose ab-drop">${paras(c.story)}</div></div>
   <div class="ab-pillars" data-stagger>${pillars.map(([i,t,d,n,l],k)=>`<div class="ab-pill"><span class="ab-pill-num">0${k+1}</span><span class="ab-pill-ic">${ico(i)}</span><div class="ab-pill-b"><h3>${t}</h3><p>${d}</p><span class="ab-pill-stat"><b data-count="${n}">${n}</b>${esc(l)}</span></div></div>`).join('')}</div></div></section>
-  ${(c.milestones||[]).length?`<section class="ab-time grain"><div class="ab-time-bg" aria-hidden="true">${heroImgs[0]?`<img src="${esc(heroImgs[0])}" alt="" loading="lazy">`:''}</div>${wavesHtml('t')}<span class="ab-time-yr" aria-hidden="true">${esc(String(since))}</span>
+  ${mapHtml(c.hqLat,c.hqLng,c.address||c.name)?`<section class="wrap ab-map-sec"><div class="sec-head" data-reveal><h2>Where to find us</h2></div><div data-reveal>${mapHtml(c.hqLat,c.hqLng,c.address||c.name)}</div></section>`:''}
+  ${milestones.length?`<section class="ab-time grain"><div class="ab-time-bg" aria-hidden="true">${heroImgs[0]?`<img src="${esc(heroImgs[0])}" alt="" loading="lazy">`:''}</div>${wavesHtml('t')}<span class="ab-time-yr" aria-hidden="true">${esc(String(since))}</span>
   <div class="wrap ab-time-in"><div class="sec-head" data-reveal><span class="ab-ag-kick" style="color:var(--citrus)">Since ${esc(String(since))}</span><h2 style="color:#fff">How we got here</h2></div>
-  <div class="ab-tl" data-reveal><i class="ab-tl-line"></i><i class="ab-tl-fill"></i><ol class="ab-tl-row">${c.milestones.map((m,i)=>`<li class="ab-tl-item" style="--k:${i}"><span class="ab-tl-ic">${ico(TL_ICONS[i%TL_ICONS.length])}</span><span class="ab-tl-dot"></span><b>${esc(m.y)}</b><p>${esc(m.t)}</p></li>`).join('')}</ol></div></div></section>`:''}
+  <div class="ab-tl" data-reveal><i class="ab-tl-line"></i><i class="ab-tl-fill"></i><ol class="ab-tl-row">${milestones.map((m,i)=>`<li class="ab-tl-item" style="--k:${i}"><span class="ab-tl-ic">${ico(TL_ICONS[i%TL_ICONS.length])}</span><span class="ab-tl-dot"></span><b>${esc(m.year)}</b><p>${esc(m.text)}</p></li>`).join('')}</ol></div></div></section>`:''}
   ${gal.length>=2?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>What that looks like</h2></div></div>
   <div class="ab-gal" data-reveal>${gal.map((s,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(s.image)}" alt="${esc(s.caption||'')}" loading="lazy"></span><figcaption>${esc(s.caption||'')}</figcaption></figure>`).join('')}</div></section>`:''}
   ${c.intro?`<section class="wrap ab-quote-sec"><blockquote class="ab-quote" data-reveal><span class="ab-qmark" aria-hidden="true">\u201C</span><p>${esc(c.intro)}</p><footer>${esc(c.name)}</footer></blockquote></section>`:''}
   ${certs.length?`<section class="wrap ab-certs-sec"><div class="sec-head" data-reveal><h2>Trusted across borders</h2><p class="lead" style="max-width:36ch">The certifications our factories hold, so the paperwork is already done before you ask.</p></div>
   <div class="ab-certs" data-stagger>${certs.map((x,i)=>`<div class="ab-cert" style="--k:${i};--h:${(i*47)%360}"><i class="ab-cert-ring"></i><span class="ab-cert-ic">${ico('check')}</span><b>${esc(x)}</b></div>`).join('')}</div></section>`:''}
-  ${a.name?`<section class="wrap ab-agent-sec"><div class="ab-agent" data-reveal><div class="ab-ag-glow"></div>${homeAg?`<span class="ab-ag-wm">${flag(homeAg.code)}</span>`:''}
+  ${a.name?`<section class="wrap ab-agent-sec"><div class="ab-agent" data-reveal><div class="ab-ag-glow"></div>
   <div class="ab-ag-top">${agentLogo({name:a.name,logo:a.logo})}<div><span class="ab-ag-kick">Authorised agent for our home market</span><h2>${esc(a.name)}</h2><p>${esc(a.tagline||'')}</p></div>
   ${a.since&&a.license?`<div class="ab-ag-badge"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="abSeal" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#abSeal" startOffset="0">Authorised \u2022 Since ${esc(a.since)} \u2022 </textPath></text></svg><b>${esc(a.license)}</b></div>`:''}</div>
   <div class="ab-ag-body"><div class="prose">${paras(a.story)}</div>
@@ -923,14 +953,26 @@ function closeSheet(){
   if(lastFocus&&lastFocus.focus)try{lastFocus.focus({preventScroll:true})}catch(e){}
   if(cb)cb();
 }
+function initPdRotate(){
+  const slides=$$('.pd-slide',ov());if(slides.length<2||REDUCED)return null;
+  const dots=$$('.pd-dots i',ov());let i=0;
+  const t=setInterval(()=>{
+    slides[i].classList.remove('on');if(dots[i])dots[i].classList.remove('on');
+    i=(i+1)%slides.length;
+    slides[i].classList.add('on');if(dots[i])dots[i].classList.add('on');
+  },3000);
+  return()=>clearInterval(t);
+}
 function openProduct(id){
   const p=state.products.find(x=>x.id===id);if(!p)return;
-  openSheet(productSheet(p),{cls:'wide',onClose(){if(/^#\/products\/./.test(location.hash)){try{history.replaceState(null,'','#/products')}catch(e){}}}});
+  let stopRotate=null;
+  openSheet(productSheet(p),{cls:'wide',onClose(){if(stopRotate)stopRotate();if(/^#\/products\/./.test(location.hash)){try{history.replaceState(null,'','#/products')}catch(e){}}}});
+  stopRotate=initPdRotate();
   if(current.page==='products'){try{history.replaceState(null,'','#/products/'+id)}catch(e){}}
 }
 
 /* ================= ROUTER ================= */
-const PAGES={home:pageHome,products:pageProducts,factories:a=>a?pageFactory(a):pageFactories(),agents:pageAgents,about:pageAbout,contact:pageContact};
+const PAGES={home:pageHome,products:pageProducts,factories:a=>a?pageFactory(a):pageFactories(),agents:a=>a?pageAgent(a):pageAgents(),about:pageAbout,contact:pageContact};
 const TITLES={home:'',products:'Products',factories:'Factories',agents:'Agents',about:'About',contact:'Contact'};
 const parseRoute=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/').filter(Boolean).map(decodeURIComponent);
 function route(first){
@@ -1021,17 +1063,17 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],slides:[],categories:[],countries:[],...cached};
+    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],...cached};
     initTheme();renderChrome();route(true);
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,slides,countries]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),
+    const [settings,factories,products,agents,announcements,faqs,slides,countries,milestones]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),apiFetch('/milestones'),
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data,milestones:milestones.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state=fresh;saveCache(fresh);
     if(changed){initTheme();renderChrome();route(true)}
