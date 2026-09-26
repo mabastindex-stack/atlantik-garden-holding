@@ -78,6 +78,8 @@ class AgentController extends Controller
             'gallery' => ['nullable', 'array'],
             'gallery.*' => ['string'],
             'bio' => ['nullable', 'string'],
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
     }
 

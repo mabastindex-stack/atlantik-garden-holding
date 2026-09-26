@@ -30,6 +30,8 @@ class AgentResource extends JsonResource
             'video' => $this->video,
             'gallery' => $this->gallery ?? [],
             'bio' => $this->bio,
+            'lat' => $this->lat,
+            'lng' => $this->lng,
         ];
     }
 }

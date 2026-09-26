@@ -1598,18 +1598,24 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fd-two{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:clamp(30px,5vw,72px)}
 .fd-prose{font-size:1.08rem}
 .fd-prose p:first-child::first-letter{float:left;font-family:var(--f-display);font-weight:400;font-size:4.4rem;line-height:.78;padding:.05em .08em 0 0;color:var(--fern)}
-.fd-aside{display:grid;gap:18px;align-content:start}
+.fd-aside{display:grid;gap:18px;align-content:start;container-type:inline-size}
 .fd-card{padding:22px 24px;border-radius:26px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
 .fd-card h3{font-size:1.05rem;margin-bottom:14px}
 .fd-person{display:flex;gap:16px;align-items:center;padding:18px 20px}
 .fd-agent{display:flex;gap:16px;align-items:center}
 .fd-certs .tag .ico{width:.95em;height:.95em;margin-right:.4em;vertical-align:-.1em}
-.loc-map{padding:0;overflow:hidden;position:relative}
-.loc-map-frame{display:block;width:100%;height:200px;border:0;filter:grayscale(.15) contrast(1.05)}
+.loc-card{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:0;border-radius:28px;background:linear-gradient(150deg,color-mix(in srgb,var(--fern) 8%,var(--surface)),var(--surface) 62%);box-shadow:var(--shadow),inset 0 0 0 1px var(--line)}
+.loc-card-l{padding:clamp(24px,3.2vw,36px);display:flex;flex-direction:column;justify-content:center;gap:9px}
+.loc-kick{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fern)}
+.loc-kick .ico{width:1.05em;height:1.05em}
+.loc-card-l h3{font-size:clamp(1.35rem,2.2vw,1.8rem);font-weight:400;line-height:1.25}
+.loc-card-l p{color:var(--ink-2);max-width:42ch;font-size:.94rem;line-height:1.55}
+.loc-gmap{justify-self:start;margin-top:6px}
+.loc-card-r{position:relative;min-height:240px}
+.loc-map-frame{position:absolute;inset:0;width:100%;height:100%;border:0;filter:grayscale(.15) contrast(1.05)}
 :root[data-theme="dark"] .loc-map-frame{filter:grayscale(.35) invert(.92) contrast(.92) hue-rotate(180deg)}
-.loc-map-link{position:absolute;left:14px;bottom:14px;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:.55em 1.1em;border-radius:999px;background:var(--surface);box-shadow:0 10px 22px -10px rgba(0,0,0,.4),inset 0 0 0 1px var(--line);font-size:.84rem;font-weight:600;transition:transform .4s var(--ease)}
-.loc-map-link:hover{transform:translateY(-2px)}
-.loc-map-link .ico{width:1em;height:1em}
+@media (max-width:760px){.loc-card{grid-template-columns:1fr}.loc-card-r{min-height:220px}}
+@container (max-width:560px){.loc-card{grid-template-columns:1fr}.loc-card-l{padding:22px 22px 4px}.loc-card-r{min-height:200px}}
 .fd-pass{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;gap:18px;padding:22px 24px;border-radius:26px;color:#fff;background:linear-gradient(140deg,hsl(var(--h) 40% 22%),hsl(var(--h) 46% 10%))}
 .fd-pass .fd-stamp{position:static;color:rgba(255,255,255,.92);width:66px}
 .fd-pass small{display:block;color:rgba(244,248,244,.7);font-size:.78rem}
@@ -1860,8 +1866,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 /* ===== about: pull quote ===== */
 .ab-quote-sec{padding-top:clamp(20px,3vw,32px);padding-bottom:clamp(50px,6.4vw,86px)}
 .ab-map-sec{padding-top:clamp(20px,3vw,32px);padding-bottom:clamp(40px,5.4vw,70px)}
-.ab-map-sec .loc-map,.ab-map-sec .loc-map-frame{border-radius:28px}
-.ab-map-sec .loc-map-frame{height:320px}
+.ab-map-sec .loc-card-r{min-height:340px}
 .ab-quote{position:relative;isolation:isolate;overflow:hidden;max-width:900px;margin:0 auto clamp(-38px,-4.4vw,-26px);text-align:center;padding:clamp(50px,7vw,80px) clamp(24px,5vw,64px) clamp(40px,5.4vw,60px);border-radius:36px;background:linear-gradient(155deg,color-mix(in srgb,var(--fern) 9%,var(--surface)),var(--surface) 65%);box-shadow:var(--shadow),inset 0 0 0 1px var(--line);opacity:0;transform:translateY(20px) scale(.98);transition:opacity 1s var(--ease),transform 1s var(--ease)}
 .ab-quote.in{opacity:1;transform:none}
 .js .ab-quote:not(.in){opacity:0;transform:translateY(20px) scale(.98)}

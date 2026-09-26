@@ -355,7 +355,7 @@ function pageFactory(id){
   <div class="fd-aside">${f.director?`<div class="fd-card fd-person"><span class="alogo" style="--h:${h}">${esc((f.director||'?')[0])}</span><div><small>Director</small><b>${esc(f.director)}</b></div></div>`:''}
   ${(f.certs||[]).length?`<div class="fd-card fd-certs"><h3>Certifications</h3><div class="tags">${f.certs.map(x=>`<span class="chip tag">${ico('check')}${esc(x)}</span>`).join('')}</div></div>`:''}
   ${ag?`<div class="fd-card fd-agent">${agentLogo(ag)}<div><small>Authorised agent</small><b>${esc(ag.name)}</b></div></div>`:''}
-  ${mapHtml(f.lat,f.lng,f.agency+', '+esc(f.city))}
+  ${mapHtml(f.lat,f.lng,f.agency,`${f.city}, ${String(f.country).split(',')[0]}`)}
   <div class="fd-pass"><span class="fd-stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="fdSeal2" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#fdSeal2" startOffset="0">Authorised \u2022 Since ${esc(f.since)} \u2022 </textPath></text></svg><b>${esc(f.code)}</b></span><div><small>Team</small><b>${esc(f.employees)}</b></div></div></div></div>
   ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Inside the factory</h2></div></div>
   <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
@@ -369,12 +369,13 @@ const words=t=>String(t).split(/\s+/).filter(Boolean).map((w,i)=>`<span class="w
 const photo=(src,alt,fb)=>{const u=src||fb;return `<span class="ph" aria-hidden="true"><b>${esc(((alt||'').trim()[0])||'')}</b></span>${u?`<img class="photo" src="${esc(u)}" alt="${esc(alt)}" loading="lazy" decoding="async" data-photo${fb&&src&&src!==fb?` data-fb="${esc(fb)}"`:''}>`:''}`};
 const fphoto=f=>`<span class="fph grain" aria-hidden="true"><b>${esc(String(f.country||'').split(',')[0])}</b></span>${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy" decoding="async" data-photo>`:''}`;
 const notFound=()=>`<section class="wrap page-head"><h1>Page not found</h1><p class="lead">That page doesn’t exist.</p><p style="margin-top:24px"><a class="btn btn-primary" href="#/">Back to home</a></p></section>`;
-function mapHtml(lat,lng,label){
+function mapHtml(lat,lng,heading,sub){
   lat=Number(lat);lng=Number(lng);
   if(!lat||!lng)return '';
   const d=0.045,bbox=`${(lng-d).toFixed(5)},${(lat-d).toFixed(5)},${(lng+d).toFixed(5)},${(lat+d).toFixed(5)}`;
   const src=`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
-  return `<div class="fd-card loc-map"><iframe class="loc-map-frame" src="${esc(src)}" loading="lazy" title="${esc(label||'Location map')}" referrerpolicy="no-referrer-when-downgrade"></iframe><a class="loc-map-link" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">${ico('pin')}Open in Google Maps${ico('arrow')}</a></div>`;
+  return `<div class="loc-card"><div class="loc-card-l"><span class="loc-kick">${ico('pin')}Find us here</span><h3>${esc(heading||'Our location')}</h3>${sub?`<p>${esc(sub)}</p>`:''}<a class="btn btn-ghost btn-sm loc-gmap" href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">${ico('pin')}Open in Google Maps${ico('arrow')}</a></div>
+  <div class="loc-card-r"><iframe class="loc-map-frame" src="${esc(src)}" loading="lazy" title="${esc(heading||'Location map')}" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>`;
 }
 
 /* ================= HERO ================= */
@@ -837,7 +838,8 @@ function pageAgent(id){
   <div class="wrap fd-stripwrap"><dl class="fd-strip"><div><dt>${ico('users')}Contact</dt><dd>${esc(a.contact||'—')}</dd></div><div><dt>${ico('route')}Territory</dt><dd>${esc(a.territory||'—')}</dd></div><div><dt>${ico('clock')}Hours</dt><dd>${esc(a.hours||'—')}</dd></div><div><dt>${ico('phone')}Phone</dt><dd>${esc(a.phone)}</dd></div></dl></div>
   <div class="wrap fd-body"><div class="fd-two"><div class="fd-prose">${a.bio?paras(a.bio):`<p>${esc(a.name)} is our authorised sales centre for ${esc(a.territory||a.city)}.</p>`}</div>
   <div class="fd-aside"><div class="fd-card fd-person">${agentLogo(a)}<div><small>${esc(a.role||'Contact')}</small><b>${esc(a.contact||a.name)}</b></div></div>
-  <div class="fd-card"><h3>Get in touch</h3><div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div></div></div>
+  <div class="fd-card"><h3>Get in touch</h3><div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div>
+  ${mapHtml(a.lat,a.lng,a.city,`Serving ${a.territory||a.city}`)}</div></div>
   ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Meet the team</h2></div></div>
   <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
   <div class="fd-pager"><a class="fdp" href="#/agents/${esc(prev.id)}"><span class="fdp-ic">${ico('left')}</span><span class="fdp-flag">${flag(prev.code)}</span><span><small>Previous</small><b>${esc(prev.name)}</b></span></a>
@@ -902,13 +904,14 @@ function pageAbout(){
   const gal=(state.slides||[]).filter(s=>s.image).slice(0,4);
   const certs=[...new Set(F.flatMap(f=>f.certs||[]))];
   const milestones=state.milestones||[];
+  const locHtml=mapHtml(c.hqLat,c.hqLng,c.address||c.name,'Visitors are welcome by appointment. Write to us first so the right person can meet you.');
   return `<section class="ab-hero grain"><div class="ab-hero-bg" aria-hidden="true">${heroImgs.map((u,i)=>`<div class="ab-slide${i===0?' on':''}" style="--dl:-${i*7}s">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:''}</div>`).join('')}</div>${wavesHtml('b')}
   <div class="wrap ab-hero-in"><span class="ab-mark">${c.logo?`<img src="${esc(c.logo)}" alt="">`:LOGO}</span>
   <h1 class="ab-name" aria-label="${esc(c.name)}">${letters}</h1><p class="lead ab-tag">${esc(c.aboutLead||c.tagline||'')}</p>
   <ul class="ab-stats">${[[years,'Years growing'],[F.length,'Factories'],[ncty,'Countries'],[state.products.length,'Products']].map(([n,l])=>`<li><b data-count="${n}">${n}</b><span>${esc(l)}</span></li>`).join('')}</ul></div></section>
   <section class="wrap ab-story"><div class="ab-story-grid"><div class="ab-drop-wrap" data-reveal><div class="ab-founded"><b>${since}</b><span>Founded</span><i>${years}\u00A0yr${years===1?'':'s'}\u00A0of\u00A0service</i></div><div class="prose ab-drop">${paras(c.story)}</div></div>
   <div class="ab-pillars" data-stagger>${pillars.map(([i,t,d,n,l],k)=>`<div class="ab-pill"><span class="ab-pill-num">0${k+1}</span><span class="ab-pill-ic">${ico(i)}</span><div class="ab-pill-b"><h3>${t}</h3><p>${d}</p><span class="ab-pill-stat"><b data-count="${n}">${n}</b>${esc(l)}</span></div></div>`).join('')}</div></div></section>
-  ${mapHtml(c.hqLat,c.hqLng,c.address||c.name)?`<section class="wrap ab-map-sec"><div class="sec-head" data-reveal><h2>Where to find us</h2></div><div data-reveal>${mapHtml(c.hqLat,c.hqLng,c.address||c.name)}</div></section>`:''}
+  ${locHtml?`<section class="wrap ab-map-sec"><div class="sec-head" data-reveal><h2>Where to find us</h2></div><div data-reveal>${locHtml}</div></section>`:''}
   ${milestones.length?`<section class="ab-time grain"><div class="ab-time-bg" aria-hidden="true">${heroImgs[0]?`<img src="${esc(heroImgs[0])}" alt="" loading="lazy">`:''}</div>${wavesHtml('t')}<span class="ab-time-yr" aria-hidden="true">${esc(String(since))}</span>
   <div class="wrap ab-time-in"><div class="sec-head" data-reveal><span class="ab-ag-kick" style="color:var(--citrus)">Since ${esc(String(since))}</span><h2 style="color:#fff">How we got here</h2></div>
   <div class="ab-tl" data-reveal><i class="ab-tl-line"></i><i class="ab-tl-fill"></i><ol class="ab-tl-row">${milestones.map((m,i)=>`<li class="ab-tl-item" style="--k:${i}"><span class="ab-tl-ic">${ico(TL_ICONS[i%TL_ICONS.length])}</span><span class="ab-tl-dot"></span><b>${esc(m.year)}</b><p>${esc(m.text)}</p></li>`).join('')}</ol></div></div></section>`:''}
