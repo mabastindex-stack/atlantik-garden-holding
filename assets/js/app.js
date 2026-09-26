@@ -211,9 +211,9 @@ function pcard(p,i){
   return `<a class="px" href="#/products/${esc(p.id)}" data-act="product" data-id="${esc(p.id)}" style="--i:${i};--tint:${esc(p.tint||'#CFE3B5')}">
   <div class="px-media">${photo(p.image,p.name,p.imageFb)}<span class="px-shade"></span>
   ${inSeason?`<span class="tg tg-now"><i></i>In season</span>`:''}
-  ${p.discount?`<span class="px-ribbon"><b>${+p.discount}</b><small>% off</small></span>`:''}
   <div class="px-quick"><b>Quick facts</b><span><i>Packaging</i>${esc(p.packaging||'\u2014')}</span><span><i>MOQ</i>${esc(p.moq||'\u2014')}</span><span><i>Shelf life</i>${esc(p.shelfLife||'\u2014')}</span></div>
   <span class="px-go">${ico('arrow')}</span></div>
+  ${p.discount?`<span class="px-ribbon"><b>${+p.discount}</b><small>% off</small></span>`:''}
   <div class="px-body"><span class="px-kick"><i></i>${esc(p.category||'')}</span><h3>${esc(p.name)}</h3><p>${esc(p.short)}</p>
   ${m?`<div class="px-cal">${m.map((on,k)=>`<i class="${on?'on':''}${k===cm?' now':''}"></i>`).join('')}<em>${esc(runLabel(m))}</em></div>`:''}
   <div class="px-foot">${code?`<span class="px-or">${flag(code)}${esc(originName)}</span>`:'<span></span>'}<span class="px-pr">${priceHtml(p)}</span></div></div></a>`;
