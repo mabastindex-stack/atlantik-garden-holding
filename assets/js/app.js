@@ -39,7 +39,8 @@ const UNS=(id,w=1400)=>`https://images.unsplash.com/photo-${id}?auto=format&fit=
 const PEX=(id,w=1200)=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
 const REMOTE={
   hero1:UNS('1758573728869-d25eb4bafb67',1920),hero2:UNS('1635176490410-5116fc497d45',1920),hero3:UNS('1689954517393-a60459f43f77',1920),
-  story:UNS('1635176490410-5116fc497d45',1920),intro1:UNS('1758573728869-d25eb4bafb67',1000),intro2:PEX(6231898,1000),about:UNS('1635176490410-5116fc497d45',1000),intro3:UNS('1689954517393-a60459f43f77',900)
+  story:UNS('1635176490410-5116fc497d45',1920),intro1:UNS('1758573728869-d25eb4bafb67',1000),intro2:PEX(6231898,1000),about:UNS('1635176490410-5116fc497d45',1000),intro3:UNS('1689954517393-a60459f43f77',900),
+  pillar1:UNS('1758573728869-d25eb4bafb67',900),pillar2:UNS('1635176490410-5116fc497d45',900),pillar3:UNS('1689954517393-a60459f43f77',900)
 };
 const PFB={'p-oil':UNS('1474979266404-7eaacbcd87c5',1000),'p-olives':PEX(6231898,1000),'p-wheat':UNS('1635176490410-5116fc497d45',1000),'p-pom':UNS('1689954517393-a60459f43f77',1000)};
 
@@ -561,11 +562,11 @@ function initFx(){
 
 /* ===== values ===== */
 function valuesHtml(){
-  const pillars=[['leaf','Grown near the source','Growers work within a short drive of each factory, so fruit and grain reach the packing line hours after harvest.','#/factories','Meet the factories'],
-    ['box','Packed where it is picked','Sorting, packing and quality checks happen on site, with lot numbers that follow the product all the way to you.','#/products','Browse products'],
-    ['route','Delivered by people you can call','Every order goes through an authorised agent who knows your market, your paperwork and your delivery window.','#/agents','Find an agent']];
+  const pillars=[['leaf','Grown near the source','Growers work within a short drive of each factory, so fruit and grain reach the packing line hours after harvest.','#/factories','Meet the factories','assets/img/pillar-grow.jpg',REMOTE.pillar1],
+    ['box','Packed where it is picked','Sorting, packing and quality checks happen on site, with lot numbers that follow the product all the way to you.','#/products','Browse products','assets/img/pillar-pack.jpg',REMOTE.pillar2],
+    ['route','Delivered by people you can call','Every order goes through an authorised agent who knows your market, your paperwork and your delivery window.','#/agents','Find an agent','assets/img/pillar-deliver.jpg',REMOTE.pillar3]];
   return `<section class="sec wrap vals"><div class="sec-head" data-reveal><h2>What you can count on</h2><p class="lead" style="max-width:38ch">Three promises that stand behind every order.</p></div>
-  <div class="vgrid" data-stagger>${pillars.map(([i,t,d,h,l])=>`<article class="vc"><div class="vc-img"><span class="ph" aria-hidden="true"><b></b></span></div>
+  <div class="vgrid" data-stagger>${pillars.map(([i,t,d,h,l,src,fb])=>`<article class="vc"><div class="vc-img">${photo(src,t,fb)}</div>
   <div class="vc-body"><span class="vc-med"><i class="vc-ring"></i>${ico(i)}</span><h3>${t}</h3><p>${d}</p><a class="vc-link" href="${h}">${l}${ico('arrow')}</a></div></article>`).join('')}</div></section>`;
 }
 
