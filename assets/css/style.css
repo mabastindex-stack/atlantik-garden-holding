@@ -1563,7 +1563,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fd-media{position:absolute;inset:0;z-index:-2}
 .fd-media .photo{width:100%;height:100%;object-fit:cover;opacity:.85}
 .fd-wrap{position:relative}
-.fd-wrap>.fd-media{position:relative;inset:auto;z-index:auto;aspect-ratio:4/3;border-radius:28px;overflow:hidden;margin-bottom:28px}
+.fd-wrap>.fd-media{position:relative;inset:auto;z-index:auto;height:clamp(190px,30vw,320px);border-radius:28px;overflow:hidden;margin-bottom:28px}
 .pd-slide{position:absolute;inset:0;opacity:0;transition:opacity 1s ease}
 .pd-slide.on{opacity:1}
 .pd-dots{position:absolute;left:50%;top:14px;translate:-50% 0;z-index:3;display:flex;gap:6px}
