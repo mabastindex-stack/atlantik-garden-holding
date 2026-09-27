@@ -80,8 +80,27 @@ class CountryController extends Controller
         return $slug;
     }
 
+    /**
+     * Countries the frontend already knows how to draw a flag for (assets/js/app.js FLAGS).
+     * When an admin adds one of these by name, it must get this exact code or the
+     * frontend's hardcoded flag artwork won't match it and no flag will render.
+     */
+    private const KNOWN_CODES = [
+        'spain' => 'ES', 'italy' => 'IT', 'france' => 'FR', 'germany' => 'DE',
+        'netherlands' => 'NL', 'portugal' => 'PT', 'greece' => 'GR', 'türkiye' => 'TR',
+        'turkiye' => 'TR', 'turkey' => 'TR', 'iraq' => 'IQ', 'kurdistan region' => 'KU',
+        'kurdistan' => 'KU', 'egypt' => 'EG', 'morocco' => 'MA',
+        'united arab emirates' => 'AE', 'uae' => 'AE', 'saudi arabia' => 'SA',
+        'india' => 'IN', 'brazil' => 'BR',
+    ];
+
     private function autoCode(string $name): string
     {
+        $known = self::KNOWN_CODES[strtolower(trim($name))] ?? null;
+        if ($known && ! Country::where('code', $known)->exists()) {
+            return $known;
+        }
+
         $letters = strtoupper(preg_replace('/[^A-Za-z]/', '', $name));
         $words = preg_split('/\s+/', trim($name));
 

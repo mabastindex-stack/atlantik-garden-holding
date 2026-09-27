@@ -23,11 +23,13 @@ const FLAGS={
   IN:bands('#FF9933','#fff','#138808')+`<circle cx="30" cy="20" r="4.6" fill="none" stroke="#000080" stroke-width="1"/>`,
   BR:`<rect width="60" height="40" fill="#009C3B"/><path d="M30 4L56 20L30 36L4 20z" fill="#FFDF00"/><circle cx="30" cy="20" r="8" fill="#002776"/>`
 };
+const FLAG_FALLBACK='<rect width="60" height="40" fill="#8FAFA8"/><circle cx="30" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2"/><path d="M18 20h24M30 8c-6 8-6 16 0 24M30 8c6 8 6 16 0 24" stroke="#fff" stroke-width="1.6" fill="none"/>';
+const flagInner=code=>FLAGS[code]||FLAG_FALLBACK;
 function flag(code){
   const c=(state.countries||[]).find(x=>x.code===code);
   const label=esc((c&&c.name)||COUNTRIES[code]||'Flag');
   if(!FLAGS[code]&&c&&c.flagImage)return `<span class="flag"><img src="${esc(c.flagImage)}" alt="${label}"></span>`;
-  return `<span class="flag"><svg viewBox="0 0 60 40" role="img" aria-label="${label}">${FLAGS[code]||'<rect width="60" height="40" fill="#8FAFA8"/><circle cx="30" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2"/><path d="M18 20h24M30 8c-6 8-6 16 0 24M30 8c6 8 6 16 0 24" stroke="#fff" stroke-width="1.6" fill="none"/>'}</svg></span>`;
+  return `<span class="flag"><svg viewBox="0 0 60 40" role="img" aria-label="${label}">${flagInner(code)}</svg></span>`;
 }
 function countryName(code){
   const c=(state.countries||[]).find(x=>x.code===code);
@@ -332,7 +334,7 @@ function fcard(f,i){
 function pageFactories(){
   const F=state.factories,c=S().company,ncty=new Set(F.map(f=>f.code)).size;
   const lead=(c.factoriesLead||'{n} factories across {m} countries, each packing what its own growers bring in.').replace('{n}',F.length).replace('{m}',ncty);
-  const orbs=F.map((f,i)=>`<div class="fa-orb" style="--i:${i};--n:${F.length}"><svg viewBox="0 0 60 40">${FLAGS[f.code]||''}</svg></div>`).join('');
+  const orbs=F.map((f,i)=>`<div class="fa-orb" style="--i:${i};--n:${F.length}"><svg viewBox="0 0 60 40">${flagInner(f.code)}</svg></div>`).join('');
   const rows=F.map((f,i)=>`<a class="fa-row" href="#/factories/${esc(f.id)}"><span class="fa-idx">${String(i+1).padStart(2,'0')}</span><span class="fa-flag">${flag(f.code)}</span><span class="fa-name">${esc(String(f.country).split(',')[0])}</span><span class="fa-city">${esc(f.city)}</span><span class="fa-since">Est. ${esc(f.since)}</span><span class="fa-arrow">${ico('arrow')}</span></a>`).join('');
   return `<section class="fatlas grain"><div class="fatlas-glow" aria-hidden="true"></div><div class="wrap fatlas-in">
   <div><span class="fatlas-kick">${ico('pin')}Where we grow and pack</span><h1>${esc(c.factoriesTitle||'Our factories')}</h1><p class="lead">${esc(lead)}</p>
@@ -572,7 +574,7 @@ function initOffers(){
 function fxHtml(){
   const F=state.factories;if(!F.length)return '';
   const hue=i=>HUES[i%HUES.length];
-  const bgs=F.map((f,i)=>`<div class="fz-bg${i===0?' on':''}" style="--h:${hue(i)}"><svg class="fz-flag" viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${FLAGS[f.code]||''}</svg>${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy" data-photo>`:''}<i class="fz-aur"></i></div>`).join('');
+  const bgs=F.map((f,i)=>`<div class="fz-bg${i===0?' on':''}" style="--h:${hue(i)}"><svg class="fz-flag" viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${flagInner(f.code)}</svg>${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy" data-photo>`:''}<i class="fz-aur"></i></div>`).join('');
   const conts=F.map((f,i)=>{const ps=productsOf(f.id);return `<article class="fz-c${i===0?' on':''}"><span class="fz-fl">${flag(f.code)}</span><h3 class="fz-country">${esc(String(f.country).split(',')[0])}</h3><p class="fz-sub">${esc(f.agency)}, ${esc(f.city)}</p>
     <div class="fz-facts">${f.director?`<span>Director <b>${esc(f.director)}</b></span>`:''}${f.since?`<span>Since <b>${esc(f.since)}</b></span>`:''}${f.employees?`<span>Team <b>${esc(f.employees)}</b></span>`:''}${f.capacity?`<span>Capacity <b>${esc(f.capacity)}</b></span>`:''}</div>
     ${(f.certs||[]).length?`<div class="fz-certs">${f.certs.map(x=>`<span>${ico('check')}${esc(x)}</span>`).join('')}</div>`:''}
@@ -822,7 +824,7 @@ function pageAgents(){
   <ul class="fatlas-stats"><li><b>${A.length}</b><span>Agents</span></li><li><b>${ncty}</b><span>Countries</span></li><li><b>${state.factories.length}</b><span>Origins served</span></li><li><b>24</b><span>Hour reply target</span></li></ul>
   <div class="ahub-jump">${chips}</div></div>
   ${homeAg?`<div class="ah-bigflag" aria-hidden="true"><i class="ah-bf-ring"></i><i class="ah-bf-ring r2"></i><i class="ah-bf-glow"></i>
-  <div class="ah-bf-wrap"><svg class="ah-bf-svg" viewBox="0 0 60 40">${FLAGS[homeAg.code]||''}</svg><i class="ah-bf-shine"></i><i class="ah-bf-pole"></i></div>
+  <div class="ah-bf-wrap"><svg class="ah-bf-svg" viewBox="0 0 60 40">${flagInner(homeAg.code)}</svg><i class="ah-bf-shine"></i><i class="ah-bf-pole"></i></div>
   <div class="ah-bf-dust">${Array.from({length:14},(_,i)=>`<i style="--i:${i};--x:${(6+i*6.7).toFixed(1)}%;--t:${(6+(i%5)*1.6).toFixed(1)}s;--dl:-${(i*0.7).toFixed(1)}s;--s:${(2+(i%3)).toFixed(0)}px"></i>`).join('')}</div></div>`:''}</div></section>
   <section class="wrap ag-sec"><div class="ag-tool"><label class="pf-search ag-search">${ico('search')}<input id="aq" type="search" autocomplete="off" placeholder="Search by city, country or territory" value="${esc(ui.aq||'')}"></label><span id="acount" class="ag-count">${A.length} of ${A.length}</span></div>
   <div id="agrid" class="agrid ag2-grid" data-stagger>${agentsGridHtml()}</div></section>`;
