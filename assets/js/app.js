@@ -297,13 +297,27 @@ function renderGrid(){
   startPxRotate(g);
 }
 function syncPanel(){renderGrid()}
+function initSegFade(){
+  const seg=$('#seg');if(!seg)return null;
+  const upd=()=>{
+    const max=seg.scrollWidth-seg.clientWidth;
+    seg.classList.toggle('has-more-r',max>2&&seg.scrollLeft<max-2);
+    seg.classList.toggle('has-more-l',seg.scrollLeft>2);
+  };
+  seg.addEventListener('scroll',upd,{passive:true});
+  upd();
+  let ro=null;
+  if('ResizeObserver' in window){ro=new ResizeObserver(upd);ro.observe(seg)}
+  return()=>{seg.removeEventListener('scroll',upd);if(ro)ro.disconnect()};
+}
 function initProducts(){
   movePill();
   const onKey=e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();const q=$('#q');if(q)q.focus()}};
   document.addEventListener('keydown',onKey);
   let ro=null;const seg=$('#segIn');
   if(seg&&'ResizeObserver' in window){ro=new ResizeObserver(movePill);ro.observe(seg)}
-  return()=>{document.removeEventListener('keydown',onKey);if(ro)ro.disconnect()};
+  const offFade=initSegFade();
+  return()=>{document.removeEventListener('keydown',onKey);if(ro)ro.disconnect();if(offFade)offFade()};
 }
 
 function offerCard(a){
