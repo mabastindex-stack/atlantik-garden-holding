@@ -487,6 +487,13 @@ function openEntityForm(kind,id){
   formCtx={img:{}};fields.filter(f=>f.t==='image'||f.t==='video').forEach(f=>formCtx.img[f.k]=vals[f.k]||'');
   fields.filter(f=>f.t==='gallery').forEach(f=>formCtx.img[f.k]=(vals[f.k]||[]).slice());
   openSheet(`<form class="fpanel" data-form="${kind}" data-id="${esc(id||'')}" novalidate><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button><h2>${cur?'Edit':'Add'} ${E.one}</h2><div class="fbody2">${fields.map(f=>fieldHtml(f,vals[f.k])).join('')}</div><footer><button type="button" class="btn btn-ghost" data-act="close">Cancel</button><button class="btn btn-primary" type="submit">Save ${E.one}</button></footer></form>`,{cls:'wide'});
+  if(kind==='posts'){const f=$('.fpanel[data-form=posts]');if(f)syncPostMediaFields(f)}
+}
+function syncPostMediaFields(form){
+  const type=form.querySelector('select[name="type"]');if(!type)return;
+  const imgField=form.querySelector('[data-k="image"]'),vidField=form.querySelector('[data-k="video"]');
+  if(imgField)imgField.closest('.field').classList.toggle('hidden',type.value==='video');
+  if(vidField)vidField.closest('.field').classList.toggle('hidden',type.value==='image');
 }
 
 /* ================= ADMIN ROUTER ================= */
@@ -554,6 +561,10 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   const inp=e.target;
   if(inp.tagName==='SELECT'){
+    if(inp.name==='type'){
+      const form=inp.closest('form[data-form="posts"]');
+      if(form)syncPostMediaFields(form);
+    }
     if(inp.name==='country'){
       const form=inp.closest('form[data-form="products"]');
       if(form){

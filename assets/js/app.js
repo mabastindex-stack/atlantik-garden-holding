@@ -913,12 +913,13 @@ function initAgentsPage(){
 }
 
 /* ================= MOMENTS ================= */
-function momentCard(p){
-  const h=hashStr(p.id)%360,excerpt=p.body?esc(p.body):'';
+const MO_PATTERN=['mo-lg','','','mo-wide','',''];
+function momentCard(p,i){
+  const h=hashStr(p.id)%360,excerpt=p.body?esc(p.body):'',size=MO_PATTERN[i%MO_PATTERN.length];
   const media=p.type==='video'&&p.video
     ?`<video class="mo-ph" src="${esc(p.video)}"${p.image?` poster="${esc(p.image)}"`:''} muted loop playsinline autoplay></video>`
     :photo(p.image,p.title);
-  return `<article class="mo-card" data-reveal><button type="button" class="mo-media" style="--h:${h}" data-act="moment" data-id="${esc(p.id)}" aria-label="Open ${esc(p.title)}">
+  return `<article class="mo-card${size?' '+size:''}" data-reveal><button type="button" class="mo-media" style="--h:${h}" data-act="moment" data-id="${esc(p.id)}" aria-label="Open ${esc(p.title)}">
   ${media}<span class="mo-scrim" aria-hidden="true"></span>
   ${p.type==='video'?`<span class="mo-badge">${ico('play')}</span>`:''}
   <span class="mo-cap"><b>${esc(p.title)}</b>${excerpt?`<span>${excerpt}</span>`:''}</span></button></article>`;
