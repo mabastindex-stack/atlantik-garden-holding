@@ -367,7 +367,7 @@ function offerCard(a){
     <div class="o-foot">${a.until?`<span>${expired?'Ended':left===0?'Ends today':`Ends in ${left} day${left===1?'':'s'}`}</span>`:''}</div></div></article>`;
 }
 function agentCard(a,i){
-  const h=hashStr(a.name)%360,wa=a.whatsapp||a.phone;
+  const h=hashStr(a.name)%360,wa=a.whatsapp;
   const cover=(a.gallery||[]).find(Boolean);
   return `<article class="ag3" id="${esc(a.id)}" style="--h:${h};--i:${i}">
   <a class="ag3-media" href="#/agents/${esc(a.id)}" aria-label="View ${esc(a.name)}'s profile">${cover?`<img class="photo" src="${esc(cover)}" alt="" loading="lazy">`:`<span class="fph" aria-hidden="true"><b>${esc(initials(a.name))}</b></span>`}<span class="ag3-shade"></span>
@@ -746,7 +746,7 @@ function initWheel(){
 /* ===== cta: full-bleed agent deck ===== */
 function ctaHtml(){
   const A=state.agents;
-  const cards=A.map(a=>`<div class="ac2"><div class="ac2-h">${agentLogo(a)}<div><b>${esc(a.name)}</b><small>${flag(a.code)}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</small></div></div><p>${esc(a.territory)}</p><div class="ac2-ph"><span class="ac2-ic">${ico('phone')}<i></i></span><span>${esc(a.phone)}</span></div><div class="ac2-b"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(a.whatsapp||a.phone)}" target="_blank" rel="noopener">WhatsApp</a></div></div>`).join('');
+  const cards=A.map(a=>`<div class="ac2"><div class="ac2-h">${agentLogo(a)}<div><b>${esc(a.name)}</b><small>${flag(a.code)}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</small></div></div><p>${esc(a.territory)}</p><div class="ac2-ph"><span class="ac2-ic">${ico('phone')}<i></i></span><span>${esc(a.phone)}</span></div><div class="ac2-b">${a.phone?`<a class="btn btn-primary btn-sm" href="${tel(a.phone)}">Call</a>`:''}${a.whatsapp?`<a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(a.whatsapp)}" target="_blank" rel="noopener">WhatsApp</a>`:''}</div></div>`).join('');
   return `<section class="cta2 grain"><div class="wrap cta2-in"><div class="cta2-l"><h2>Buy through an authorised agent</h2><p>Our agents handle pricing, samples, paperwork and delivery in your region. Pick the one closest to you.</p>
   <div class="cta2-btns"><a class="btn btn-primary" href="#/agents">See all agents</a><a class="btn btn-ghost" href="#/contact">Become an agent</a></div>
   ${A.length?`<div class="cta2-avs"><span class="avs">${A.slice(0,5).map(agentLogo).join('')}</span><span>${A.length} authorised agent${A.length===1?'':'s'} ready to help</span></div>`:''}</div>
@@ -892,7 +892,7 @@ function pageAgents(){
 function pageAgent(id){
   const A=state.agents,idx=A.findIndex(x=>x.id===id),a=A[idx];if(!a)return notFound();
   const h=hashStr(a.name)%360,prev=A[(idx-1+A.length)%A.length],next=A[(idx+1)%A.length];
-  const gal=(a.gallery||[]).filter(Boolean),wa=a.whatsapp||a.phone;
+  const gal=(a.gallery||[]).filter(Boolean),wa=a.whatsapp;
   return `<section class="fd" style="--h:${h}"><div class="fd-hero"><div class="fd-media">${a.video?`<video class="photo" src="${esc(a.video)}"${a.logo?` poster="${esc(a.logo)}"`:''} autoplay muted loop playsinline></video>`:''}</div><i class="fd-orb a"></i><i class="fd-orb b"></i><span class="fd-scrim"></span>
   <div class="wrap fd-hero-in"><a class="fd-back link" href="#/agents">${ico('left')}Back to agents</a>
   <div class="fd-title"><span class="fd-flag">${flag(a.code)}</span><div><span class="fd-kick">Agent ${String(idx+1).padStart(2,'0')} of ${String(A.length).padStart(2,'0')}</span><h1>${esc(a.name)}</h1><p>${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</p></div></div></div></div>
