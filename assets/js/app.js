@@ -923,10 +923,10 @@ function offersHtml(){
 }
 function pageContact(){
   const c=S().company;
+  const locHtml=mapHtml(c.hqLat,c.hqLng,c.mapHeading||c.address,c.mapText||'Visitors are welcome by appointment. Write to us first so the right person can meet you.');
   return `<section class="ct-hero grain"><div class="ct-glow" aria-hidden="true"></div>${wavesHtml('b')}
   <div class="wrap ct-hero-in"><span class="fatlas-kick">${ico('mail')}Usually one working day to reply</span><h1>${esc(c.contactTitle||'Talk to us')}</h1><p class="lead">${esc(c.contactLead||'Have a question about products, pricing or an order? Write to us or find your regional agent.')}</p></div></section>
-  <section class="wrap ct-loc-wrap"><div class="ct-loc" data-reveal><div class="ct-loc-l"><span class="ct-loc-kick">${ico('pin')}Head office</span><h3>${esc(c.address)}</h3><p>Visitors are welcome by appointment. Write to us first so the right person can meet you.</p></div>
-  <div class="ct-loc-r" aria-hidden="true"><i class="ct-loc-ring r1"></i><i class="ct-loc-ring r2"></i><i class="ct-loc-ring r3"></i><span class="ct-loc-pin"><i class="ct-loc-halo"></i>${ico('pin')}</span></div></div></section>
+  ${locHtml?`<section class="wrap ct-loc-wrap"><div data-reveal>${locHtml}</div></section>`:''}
   <section class="wrap ct-body"><div class="contact-grid"><div class="ct-info" data-stagger>
   <a class="ct-tile" href="mailto:${esc(c.email)}" data-reveal><span class="ct-tile-ic">${ico('mail')}</span><div><small>Email</small><b>${esc(c.email)}</b></div></a>
   <a class="ct-tile" href="${tel(c.phone)}" data-reveal><span class="ct-tile-ic">${ico('phone')}</span><div><small>Phone</small><b>${esc(c.phone)}</b></div></a>

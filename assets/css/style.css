@@ -1945,24 +1945,9 @@ a.ct-tile:hover .ct-tile-ic{transform:rotate(-8deg) scale(1.08)}
 .ct-form-ic .ico{width:22px;height:22px;stroke-width:1.6}
 @media (max-width:860px){.contact-grid{grid-template-columns:minmax(0,1fr)}}
 
-/* ===== contact: head office showcase ===== */
+/* ===== contact: head office map ===== */
 .ct-loc-wrap{padding-top:clamp(30px,4vw,44px)}
-.ct-loc{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:center;gap:clamp(20px,3vw,40px);padding:clamp(28px,4vw,44px) clamp(28px,4.4vw,50px);border-radius:36px;background:linear-gradient(150deg,color-mix(in srgb,var(--fern) 8%,var(--surface)),var(--surface) 62%);box-shadow:var(--shadow),inset 0 0 0 1px var(--line)}
-.ct-loc-kick{display:inline-flex;align-items:center;gap:9px;font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fern);margin-bottom:10px}
-.ct-loc-kick .ico{width:1.1em;height:1.1em}
-.ct-loc-l h3{font-size:clamp(1.5rem,2.4vw,2rem);font-weight:400;line-height:1.25;margin-bottom:10px}
-.ct-loc-l p{color:var(--ink-2);max-width:44ch}
-.ct-loc-r{position:relative;height:clamp(120px,14vw,160px);display:grid;place-items:center}
-.ct-loc-ring{position:absolute;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--fern) 45%,transparent)}
-.ct-loc-ring.r1{inset:38%;animation:locring 3.6s ease-out infinite}
-.ct-loc-ring.r2{inset:30%;animation:locring 3.6s ease-out 1.2s infinite}
-.ct-loc-ring.r3{inset:22%;animation:locring 3.6s ease-out 2.4s infinite}
-@keyframes locring{0%{transform:scale(.4);opacity:.7}100%{transform:scale(1.5);opacity:0}}
-.ct-loc-pin{position:relative;width:64px;height:64px;border-radius:50% 50% 50% 4px;display:grid;place-items:center;background:var(--btn);color:var(--on-btn);rotate:-45deg;box-shadow:0 18px 30px -12px var(--btn);animation:locbob 2.6s ease-in-out infinite}
-.ct-loc-pin .ico{rotate:45deg;width:26px;height:26px;stroke-width:1.8}
-@keyframes locbob{50%{transform:translateY(-8px)}}
-.ct-loc-halo{position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--fern) 35%,transparent),transparent 70%);z-index:-1}
-@media (max-width:760px){.ct-loc{grid-template-columns:minmax(0,1fr)}.ct-loc-r{height:110px}}
+.ct-loc-wrap .loc-card-r{min-height:320px}
 
 /* ===== contact: offers/notices list wrapper ===== */
 .ol-wrap{display:grid;gap:clamp(24px,3vw,38px)}
