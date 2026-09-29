@@ -69,7 +69,11 @@ class AgentController extends Controller
             'code' => ['nullable', 'string', 'size:2'],
             'city' => ['nullable', 'string'],
             'territory' => ['nullable', 'string'],
-            'phone' => ['required', 'string'],
+            'phone' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                if ($value !== '' && ! preg_match('/^[0-9+\-\s()]{6,20}$/', $value)) {
+                    $fail('The phone must be a valid phone number.');
+                }
+            }],
             'whatsapp' => ['nullable', 'string'],
             'email' => ['nullable', 'email'],
             'hours' => ['nullable', 'string'],
@@ -89,7 +93,7 @@ class AgentController extends Controller
     {
         return array_merge([
             'contact' => '', 'role' => '', 'code' => 'KU', 'city' => '',
-            'territory' => '', 'whatsapp' => null, 'email' => '', 'hours' => '',
+            'territory' => '', 'phone' => '', 'whatsapp' => null, 'email' => '', 'hours' => '',
             'gallery' => [], 'bio' => '',
         ], array_filter($data, fn ($v) => $v !== null));
     }

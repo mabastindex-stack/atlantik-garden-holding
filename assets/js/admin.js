@@ -174,7 +174,7 @@ function fieldHtml(f,val){
     case'image':ctl=`<div class="imgpick" data-k="${f.k}"><div class="imgprev">${val?`<img src="${esc(val)}" alt="">`:'<span>No image</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose image<input type="file" accept="image/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="img-clear">Remove</button><span class="img-status">Uploading…</span></div></div>`;break;
     case'video':ctl=`<div class="imgpick vidpick" data-k="${f.k}"><div class="imgprev">${val?`<video src="${esc(val)}" muted playsinline loop></video>`:'<span>No video</span>'}</div><div class="imgbtns"><label class="btn btn-ghost btn-sm">Choose video<input type="file" accept="video/*" hidden></label><button type="button" class="btn btn-ghost btn-sm" data-act="vid-clear">Remove</button><span class="img-status">Uploading…</span></div></div>`;break;
     case'gallery':ctl=`<div class="gpick" data-k="${f.k}"><div class="gprev">${galleryThumbs(val,f.k)}</div><label class="btn btn-ghost btn-sm">Add photo<input type="file" accept="image/*" hidden></label></div>`;break;
-    default:ctl=`<input id="${id}" name="${f.k}" type="${f.t||'text'}" value="${esc(val)}"${f.step?` step="${f.step}"`:''}${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}${f.ph?` placeholder="${esc(f.ph)}"`:''}${f.list?` list="dl_${id}"`:''}${f.req?' required':''}>${f.list?`<datalist id="dl_${id}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:''}`;
+    default:ctl=`<input id="${id}" name="${f.k}" type="${f.t||'text'}" value="${esc(val)}"${f.step?` step="${f.step}"`:''}${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}${f.ph?` placeholder="${esc(f.ph)}"`:''}${f.list?` list="dl_${id}"`:''}${f.pattern?` pattern="${esc(f.pattern)}" title="${esc(f.patternMsg||'')}"`:''}${f.req?' required':''}>${f.list?`<datalist id="dl_${id}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:''}`;
   }
   return `<div class="field${f.wide?' wide':''}">${label}${ctl}${f.hint?`<small>${esc(f.hint)}</small>`:''}</div>`;
 }
@@ -289,7 +289,7 @@ const ENT={
     fields:()=>[
       {k:'name',l:'Agent or sales centre name',t:'text',req:1,wide:1},{k:'contact',l:'Contact person',t:'text'},{k:'role',l:'Role',t:'text'},
       {k:'code',l:'Country flag',t:'select',opts:state.countries.map(c=>[c.code,c.name])},{k:'city',l:'City',t:'text'},
-      {k:'territory',l:'Territory covered',t:'text',wide:1},{k:'phone',l:'Phone',t:'tel',req:1},{k:'whatsapp',l:'WhatsApp number',t:'tel'},
+      {k:'territory',l:'Territory covered',t:'text',wide:1},{k:'phone',l:'Phone',t:'tel',pattern:'[0-9+\\(\\)\\-\\s]{6,20}',patternMsg:'Numbers only (may include +, spaces, dashes or brackets).'},{k:'whatsapp',l:'WhatsApp number',t:'tel'},
       {k:'email',l:'Email',t:'email'},{k:'hours',l:'Opening hours',t:'text'},{k:'logo',l:'Logo',t:'image',wide:1},
       {k:'bio',l:'Profile description',t:'textarea',rows:5,wide:1,hint:'Shown on the agent’s profile page.'},
       {k:'video',l:'Profile cover video',t:'video',wide:1,hint:'Plays automatically at the top of the agent’s profile page.'},
@@ -298,7 +298,7 @@ const ENT={
       {k:'lng',l:'Location longitude',t:'number',step:'0.000001',min:-180,max:180,hint:'Right-click the agent’s office on Google Maps and choose the coordinates to copy them here. Leave both at 0 to hide the map.'},
       {k:'mapHeading',l:'Map heading',t:'text',wide:1,ph:'Erbil',hint:'Shown above the map. Leave empty to use the city.'},
       {k:'mapText',l:'Map description',t:'textarea',rows:2,wide:1,ph:'Serving Kurdistan Region and Iraq',hint:'Shown under the heading. Leave empty to use the territory.'}],
-    row:a=>rowHtml('agents',a.id,flag(a.code),a.name,`${a.city}, ${a.phone}`)},
+    row:a=>rowHtml('agents',a.id,flag(a.code),a.name,[a.city,a.phone].filter(Boolean).join(', '))},
   notices:{one:'notice',title:'Notices and offers',apiPath:'/announcements',items:()=>state.announcements,label:a=>a.title,
     make:()=>({id:uid('n-'),type:'offer',title:'',body:'',discount:0,code:'',until:''}),
     fields:()=>[
