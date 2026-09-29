@@ -57,6 +57,15 @@ const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelecto
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const hashStr=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h};
+const hexHue=hex=>{
+  const m=/^#?([0-9a-f]{6})$/i.exec(hex||'');if(!m)return 140;
+  const n=parseInt(m[1],16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  if(d===0)return 0;
+  let h=max===r?((g-b)/d)%6:max===g?(b-r)/d+2:(r-g)/d+4;
+  h*=60;if(h<0)h+=360;
+  return Math.round(h);
+};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 const REDUCED=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 const digits=s=>String(s||'').replace(/[^\d]/g,'');
@@ -982,7 +991,7 @@ function pageAbout(){
   const pillars=(state.highlights||[]).filter(h=>h.section==='about_pillars');
   const letters=[...String(c.name||'')].map((ch,i)=>ch===' '?'<span class="ab-l sp"></span>':`<span class="ab-l" style="--i:${i}">${esc(ch)}</span>`).join('');
   const gal=(state.slides||[]).filter(s=>s.image).slice(0,4);
-  const certs=[...new Set(F.flatMap(f=>f.certs||[]))];
+  const certs=(state.highlights||[]).filter(h=>h.section==='certifications');
   const milestones=state.milestones||[];
   const locHtml=mapHtml(c.hqLat,c.hqLng,c.mapHeading||c.address||c.name,c.mapText||'Visitors are welcome by appointment. Write to us first so the right person can meet you.');
   return `<section class="ab-hero grain"><div class="ab-hero-bg" aria-hidden="true">${heroImgs.map((u,i)=>`<div class="ab-slide${i===0?' on':''}" style="--dl:-${i*7}s">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:''}</div>`).join('')}</div>${wavesHtml('b')}
@@ -999,7 +1008,7 @@ function pageAbout(){
   <div class="ab-gal" data-reveal>${gal.map((s,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(s.image)}" alt="${esc(s.caption||'')}" loading="lazy"></span><figcaption>${esc(s.caption||'')}</figcaption></figure>`).join('')}</div></section>`:''}
   ${c.intro?`<section class="wrap ab-quote-sec"><blockquote class="ab-quote" data-reveal><span class="ab-qmark" aria-hidden="true">\u201C</span><p>${esc(c.intro)}</p><footer>${esc(c.name)}</footer></blockquote></section>`:''}
   ${certs.length?`<section class="wrap ab-certs-sec"><div class="sec-head" data-reveal><h2>Trusted across borders</h2><p class="lead" style="max-width:36ch">The certifications our factories hold, so the paperwork is already done before you ask.</p></div>
-  <div class="ab-certs" data-stagger>${certs.map((x,i)=>`<div class="ab-cert" style="--k:${i};--h:${(i*47)%360}"><i class="ab-cert-ring"></i><span class="ab-cert-ic">${ico('check')}</span><b>${esc(x)}</b></div>`).join('')}</div></section>`:''}
+  <div class="ab-certs" data-stagger>${certs.map((x,i)=>`<div class="ab-cert" style="--k:${i};--h:${hexHue(x.color)}"><i class="ab-cert-ring"></i><span class="ab-cert-ic">${ico('check')}</span><b>${esc(x.title)}</b></div>`).join('')}</div></section>`:''}
   ${a.name?`<section class="wrap ab-agent-sec"><div class="ab-agent" data-reveal><div class="ab-ag-glow"></div>
   <div class="ab-ag-top">${agentLogo({name:a.name,logo:a.logo})}<div><span class="ab-ag-kick">Authorised agent for our home market</span><h2>${esc(a.name)}</h2><p>${esc(a.tagline||'')}</p></div>
   ${a.since&&a.license?`<div class="ab-ag-badge"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="abSeal" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#abSeal" startOffset="0">Authorised \u2022 Since ${esc(a.since)} \u2022 </textPath></text></svg><b>${esc(a.license)}</b></div>`:''}</div>

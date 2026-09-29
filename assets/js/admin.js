@@ -328,22 +328,24 @@ const ENT={
       {k:'video',l:'Video',t:'video',wide:1,hint:'Used when the post type is Video. Plays automatically, muted, on loop.'}],
     row:p=>rowHtml('posts',p.id,p.type==='video'?`<span class="ph" aria-hidden="true">${ico('youtube')}</span>`:photo(p.image,p.title),p.title,p.type==='video'?'Video moment':'Photo moment')},
   highlights:{one:'highlight',title:'Highlights (home & about cards)',apiPath:'/highlights',items:()=>state.highlights,label:h=>h.title,
-    make:()=>({id:'',section:'home_pillars',icon:'leaf',title:'',text:'',linkUrl:'',linkLabel:'',image:'',statNumber:'',statLabel:''}),
+    make:()=>({id:'',section:'home_pillars',icon:'leaf',title:'',text:'',linkUrl:'',linkLabel:'',image:'',color:'#CFE3B5',statNumber:'',statLabel:''}),
     fields:()=>[
-      {k:'section',l:'Where does this show',t:'select',opts:[['home_pillars','Home page — “What you can count on”'],['process_steps','About page — “From field to pallet” steps'],['about_pillars','About page — stat pillars']]},
+      {k:'section',l:'Where does this show',t:'select',opts:[['home_pillars','Home page — “What you can count on”'],['process_steps','About page — “From field to pallet” steps'],['about_pillars','About page — stat pillars'],['certifications','About page — trust badges']]},
       {k:'icon',l:'Icon',t:'select',opts:[['leaf','Leaf'],['box','Box'],['route','Route'],['search','Search'],['truck','Truck'],['gift','Gift'],['check','Check'],['users','Users'],['pin','Pin'],['clock','Clock'],['list','List'],['grid','Grid'],['sparkle','Sparkle']]},
       {k:'title',l:'Title',t:'text',req:1,wide:1},
-      {k:'text',l:'Text',t:'textarea',rows:3,req:1,wide:1},
+      {k:'text',l:'Text',t:'textarea',rows:3,wide:1},
       {k:'linkUrl',l:'Link',t:'text',ph:'#/factories',hint:'Only used on the Home page cards.'},
       {k:'linkLabel',l:'Link label',t:'text',ph:'Meet the factories'},
       {k:'image',l:'Background photo',t:'image',wide:1,hint:'Only used on the Home page cards.'},
+      {k:'color',l:'Badge colour',t:'color',hint:'Only used on the About page trust badges.'},
       {k:'statNumber',l:'Number',t:'number',min:0,hint:'Only used on the About page stat pillars.'},
       {k:'statLabel',l:'Number label',t:'text',ph:'countries of origin'}],
     row:h=>{
-      let meta=h.text.length>70?h.text.slice(0,70)+'…':h.text;
+      let meta=(h.text||'').length>70?h.text.slice(0,70)+'…':(h.text||'');
       if(h.section==='home_pillars')meta=h.linkLabel?`Links to “${h.linkLabel}”`:'No link set';
       else if(h.section==='about_pillars')meta=h.statNumber!=null?`${h.statNumber} ${h.statLabel||''}`.trim():'No number set';
-      return rowHtml('highlights',h.id,ico(h.icon),h.title,meta);
+      else if(h.section==='certifications')meta=h.color||'No colour set';
+      return rowHtml('highlights',h.id,h.section==='certifications'?`<span class="ph" aria-hidden="true" style="background:${esc(h.color||'#CFE3B5')}">${ico('check')}</span>`:ico(h.icon),h.title,meta);
     }},
   categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
     make:()=>({id:'',name:''}),
@@ -469,7 +471,7 @@ const DTABS=[['overview','Overview'],['products','Products'],['factories','Facto
 function dashBody(tab){
   if(tab==='highlights'){
     const E=ENT.highlights,items=E.items();
-    const groups=[['home_pillars','Home page — “What you can count on”'],['process_steps','About page — “From field to pallet” steps'],['about_pillars','About page — stat pillars']];
+    const groups=[['home_pillars','Home page — “What you can count on”'],['process_steps','About page — “From field to pallet” steps'],['about_pillars','About page — stat pillars'],['certifications','About page — trust badges']];
     return `<div class="dhead"><h2>${E.title}</h2><button class="btn btn-primary" data-act="add" data-kind="highlights">${ico('plus')}Add ${E.one}</button></div>
     ${groups.map(([key,label])=>{const list=items.filter(h=>h.section===key);return `<div class="dpanel"><h3>${label}</h3><ul class="dlist">${list.length?list.map(E.row).join(''):'<li class="empty">Nothing here yet.</li>'}</ul></div>`}).join('')}`;
   }
@@ -529,10 +531,13 @@ function syncPostMediaFields(form){
 }
 function syncHighlightFields(form){
   const sec=form.querySelector('select[name="section"]');if(!sec)return;
-  const showHome=sec.value==='home_pillars',showAbout=sec.value==='about_pillars';
+  const showHome=sec.value==='home_pillars',showAbout=sec.value==='about_pillars',showCert=sec.value==='certifications';
   ['linkUrl','linkLabel'].forEach(k=>{const el=form.querySelector(`[name="${k}"]`);if(el)el.closest('.field').classList.toggle('hidden',!showHome)});
   const imgField=form.querySelector('[data-k="image"]');if(imgField)imgField.closest('.field').classList.toggle('hidden',!showHome);
   ['statNumber','statLabel'].forEach(k=>{const el=form.querySelector(`[name="${k}"]`);if(el)el.closest('.field').classList.toggle('hidden',!showAbout)});
+  const colorField=form.querySelector('[name="color"]');if(colorField)colorField.closest('.field').classList.toggle('hidden',!showCert);
+  const iconField=form.querySelector('select[name="icon"]');if(iconField)iconField.closest('.field').classList.toggle('hidden',showCert);
+  const textField=form.querySelector('[name="text"]');if(textField)textField.closest('.field').classList.toggle('hidden',showCert);
 }
 
 /* ================= ADMIN ROUTER ================= */

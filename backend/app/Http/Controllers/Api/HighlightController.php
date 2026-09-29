@@ -58,13 +58,14 @@ class HighlightController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'section' => ['required', 'in:home_pillars,process_steps,about_pillars'],
+            'section' => ['required', 'in:home_pillars,process_steps,about_pillars,certifications'],
             'icon' => ['required', 'string', 'max:40'],
             'title' => ['required', 'string', 'max:150'],
-            'text' => ['required', 'string', 'max:600'],
+            'text' => ['nullable', 'string', 'max:600'],
             'linkUrl' => ['nullable', 'string', 'max:255'],
             'linkLabel' => ['nullable', 'string', 'max:100'],
             'image' => ['nullable', 'string'],
+            'color' => ['nullable', 'string', 'max:9'],
             'statNumber' => ['nullable', 'integer', 'min:0'],
             'statLabel' => ['nullable', 'string', 'max:100'],
         ]);

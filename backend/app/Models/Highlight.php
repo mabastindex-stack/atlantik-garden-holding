@@ -8,7 +8,7 @@ class Highlight extends Model
 {
     protected $fillable = [
         'section', 'icon', 'title', 'text',
-        'linkUrl', 'linkLabel', 'image',
+        'linkUrl', 'linkLabel', 'image', 'color',
         'statNumber', 'statLabel',
     ];
 

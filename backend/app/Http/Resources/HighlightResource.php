@@ -23,6 +23,7 @@ class HighlightResource extends JsonResource
             'linkUrl' => $this->linkUrl,
             'linkLabel' => $this->linkLabel,
             'image' => $this->image,
+            'color' => $this->color,
             'statNumber' => $this->statNumber,
             'statLabel' => $this->statLabel,
         ];
