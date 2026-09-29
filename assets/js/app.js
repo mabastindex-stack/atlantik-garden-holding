@@ -701,7 +701,7 @@ function initCtaDeck(){
   const render=first=>cs.forEach((c,k)=>{
     const o=((k-idx)%n+n)%n,q=(n>2&&o===n-1)?-1:Math.min(o,3);
     if(!first&&Math.abs(q-prev[k])>2){c.classList.add('jump');requestAnimationFrame(()=>requestAnimationFrame(()=>c.classList.remove('jump')))}
-    prev[k]=q;c.style.setProperty('--q',q);c.style.zIndex=String(q<0?12:10-q);c.classList.toggle('out',q<0);c.classList.toggle('back',q>2);
+    prev[k]=q;c.style.setProperty('--q',q);c.style.zIndex=String(q<0?12:10-q);c.classList.toggle('out',q<0);c.classList.toggle('back',q>2);c.classList.toggle('front',o===0);
   });
   render(true);
   const t=(REDUCED||n<2)?null:setInterval(()=>{idx=(idx+1)%n;render()},3800);
