@@ -94,14 +94,15 @@ const I={
   tiktok:'<path d="M14 4v10.2a3.7 3.7 0 1 1-3.7-3.7"/><path d="M14 4c.4 2.5 2 4 4.6 4.3"/>',
   youtube:'<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M10.5 9.5v5l4.2-2.5z"/>',
   users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9.3" r="2.4"/><path d="M15.7 14.3c2.7.5 4.3 2.4 4.3 5.7"/>',
-  filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',chev:'<path d="M6 9l6 6 6-6"/>'
+  filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',chev:'<path d="M6 9l6 6 6-6"/>',
+  play:'<path d="M8 5.5v13l11-6.5z"/>',sparkle:'<path d="M12 3l1.8 5.6L19.5 10l-5.7 1.4L12 17l-1.8-5.6L4.5 10l5.7-1.4z"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[]};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[]};
 const S=()=>state.settings;
 const fById=id=>state.factories.find(f=>f.id===id);
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
@@ -160,7 +161,7 @@ async function apiFetch(path){
 }
 
 /* ================= CHROME ================= */
-const NAV=[['home','Home'],['products','Products'],['factories','Factories'],['agents','Agents'],['about','About'],['contact','Contact']];
+const NAV=[['home','Home'],['products','Products'],['factories','Factories'],['agents','Agents'],['moments','Moments'],['about','About'],['contact','Contact']];
 const href=p=>p==='home'?'#/':'#/'+p;
 function brandHtml(c){
   const m=/^(.*?)\s+Holding$/i.exec(c.name||'');
@@ -911,8 +912,37 @@ function initAgentsPage(){
   return()=>inp.removeEventListener('input',on);
 }
 
-
-
+/* ================= MOMENTS ================= */
+function momentCard(p){
+  const h=hashStr(p.id)%360,excerpt=p.body?esc(p.body):'';
+  const media=p.type==='video'&&p.video
+    ?`<video class="mo-ph" src="${esc(p.video)}"${p.image?` poster="${esc(p.image)}"`:''} muted loop playsinline autoplay></video>`
+    :photo(p.image,p.title);
+  return `<article class="mo-card" data-reveal><button type="button" class="mo-media" style="--h:${h}" data-act="moment" data-id="${esc(p.id)}" aria-label="Open ${esc(p.title)}">
+  ${media}<span class="mo-scrim" aria-hidden="true"></span>
+  ${p.type==='video'?`<span class="mo-badge">${ico('play')}</span>`:''}
+  <span class="mo-cap"><b>${esc(p.title)}</b>${excerpt?`<span>${excerpt}</span>`:''}</span></button></article>`;
+}
+function pageMoments(){
+  const c=S().company,P=state.posts;
+  return `<section class="mo-hero grain"><div class="mo-glow" aria-hidden="true"></div>${wavesHtml('b')}
+  <div class="wrap mo-hero-in"><span class="fatlas-kick">${ico('sparkle')}Behind the harvest</span><h1>${esc(c.momentsTitle||'Moments')}</h1><p class="lead">${esc(c.momentsLead||'A closer look at the people, places and harvest days behind Atlantik Garden Holding, told in photos and video.')}</p></div></section>
+  <section class="wrap mo-sec">${P.length?`<div class="mo-grid" data-stagger>${P.map(momentCard).join('')}</div>`
+    :`<div class="px-empty" data-reveal><span class="pe-ic">${ico('sparkle')}</span><h3>Nothing shared yet</h3><p>New photos and videos will appear here soon.</p></div>`}</section>`;
+}
+function momentSheet(p){
+  const media=p.type==='video'&&p.video
+    ?`<video src="${esc(p.video)}"${p.image?` poster="${esc(p.image)}"`:''} controls autoplay playsinline loop></video>`
+    :p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}">`:'';
+  return `<div class="mo-sheet-media">${media}</div>
+  <div class="mo-sheet-body"><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button>
+  <span class="mo-sheet-kick">${ico(p.type==='video'?'play':'sparkle')}${p.type==='video'?'Video':'Photo'}</span>
+  <h2>${esc(p.title)}</h2>${p.body?`<p>${esc(p.body)}</p>`:''}</div>`;
+}
+function openMoment(id){
+  const p=state.posts.find(x=>x.id===id);if(!p)return;
+  openSheet(momentSheet(p),{cls:'wide mo-open'});
+}
 
 const TL_ICONS=['leaf','box','route','truck','check','gift','pin'];
 function offersHtml(){
@@ -1047,8 +1077,8 @@ function openProduct(id){
 }
 
 /* ================= ROUTER ================= */
-const PAGES={home:pageHome,products:pageProducts,factories:a=>a?pageFactory(a):pageFactories(),agents:a=>a?pageAgent(a):pageAgents(),about:pageAbout,contact:pageContact};
-const TITLES={home:'',products:'Products',factories:'Factories',agents:'Agents',about:'About',contact:'Contact'};
+const PAGES={home:pageHome,products:pageProducts,factories:a=>a?pageFactory(a):pageFactories(),agents:a=>a?pageAgent(a):pageAgents(),moments:pageMoments,about:pageAbout,contact:pageContact};
+const TITLES={home:'',products:'Products',factories:'Factories',agents:'Agents',moments:'Moments',about:'About',contact:'Contact'};
 const parseRoute=()=>location.hash.replace(/^#\/?/,'').split('?')[0].split('/').filter(Boolean).map(decodeURIComponent);
 function route(first){
   const parts=parseRoute(),page=PAGES[parts[0]]?parts[0]:'home',arg=parts[1];
@@ -1079,6 +1109,7 @@ document.addEventListener('click',e=>{
   const act=t.dataset.act,d=t.dataset;
   switch(act){
     case'product':e.preventDefault();openProduct(d.id);break;
+    case'moment':openMoment(d.id);break;
     case'close':closeSheet();break;
     case'theme':toggleTheme(t);document.body.classList.remove('menu-open');{const b=$('.burger');if(b)b.setAttribute('aria-expanded','false')}break;
     case'top':window.scrollTo({top:0,behavior:REDUCED?'auto':'smooth'});break;
@@ -1139,17 +1170,17 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],...cached};
+    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],...cached};
     initTheme();renderChrome();route(true);
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,slides,countries,milestones]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),apiFetch('/milestones'),
+    const [settings,factories,products,agents,announcements,faqs,slides,countries,milestones,posts]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),apiFetch('/milestones'),apiFetch('/posts'),
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data,milestones:milestones.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data,milestones:milestones.data,posts:posts.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state=fresh;saveCache(fresh);
     if(changed){initTheme();renderChrome();route(true)}

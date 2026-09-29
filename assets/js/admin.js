@@ -69,7 +69,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],me:null};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -311,6 +311,15 @@ const ENT={
     make:()=>({id:'',image:'',caption:''}),
     fields:()=>[{k:'image',l:'Photo',t:'image',wide:1,hint:'Shown full-width at the top of the Home page. Add more than one and they rotate automatically.'},{k:'caption',l:'Caption (optional)',t:'text',wide:1}],
     row:s=>rowHtml('slides',s.id,photo(s.image,s.caption||'Cover photo'),s.caption||'Untitled photo','Home page hero image')},
+  posts:{one:'moment',title:'Moments (photo & video posts)',apiPath:'/posts',items:()=>state.posts,label:p=>p.title,
+    make:()=>({id:'',type:'image',title:'',body:'',image:'',video:''}),
+    fields:()=>[
+      {k:'type',l:'Post type',t:'select',opts:[['image','Photo'],['video','Video']]},
+      {k:'title',l:'Title',t:'text',req:1,wide:1},
+      {k:'body',l:'Short text',t:'textarea',rows:3,wide:1,hint:'A line or two shown under the title.'},
+      {k:'image',l:'Photo',t:'image',wide:1,hint:'Used when the post type is Photo.'},
+      {k:'video',l:'Video',t:'video',wide:1,hint:'Used when the post type is Video. Plays automatically, muted, on loop.'}],
+    row:p=>rowHtml('posts',p.id,p.type==='video'?`<span class="ph" aria-hidden="true">${ico('youtube')}</span>`:photo(p.image,p.title),p.title,p.type==='video'?'Video moment':'Photo moment')},
   categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
     make:()=>({id:'',name:''}),
     fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
@@ -348,6 +357,7 @@ function overviewBody(){
     ['products','Products',state.products.length,'box'],
     ['factories','Factories',state.factories.length,'factory'],
     ['agents','Agents',state.agents.length,'users'],
+    ['posts','Moments',state.posts.length,'grid'],
     ['countries','Countries',state.countries.length,'globe'],
     ['notices','Active offers',state.announcements.filter(a=>a.type==='offer'&&(!a.until||new Date(a.until)>=now)).length,'tag'],
     ['faqs','FAQs',state.faqs.length,'note']
@@ -391,6 +401,9 @@ const SITE=[
   ['Agents page',[
     {k:'company.agentsTitle',l:'Title',t:'text',ph:'Authorised agents'},
     {k:'company.agentsLead',l:'Intro line',t:'text',wide:1,ph:'Our agents are the sales centres for their regions…'}]],
+  ['Moments page',[
+    {k:'company.momentsTitle',l:'Title',t:'text',ph:'Moments'},
+    {k:'company.momentsLead',l:'Intro line',t:'text',wide:1,ph:'A closer look at the people, places and harvest days…',hint:'The photos and videos below are managed on the “Moments” page.'}]],
   ['Contact page',[
     {k:'company.contactTitle',l:'Title',t:'text',ph:'Talk to us'},
     {k:'company.contactLead',l:'Intro line',t:'text',wide:1,ph:'Have a question about products, pricing or an order…'},
@@ -427,7 +440,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['milestones','About page timeline'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['posts','Moments'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['milestones','About page timeline'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -668,16 +681,16 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],...cached,me:null};
+    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],...cached,me:null};
     initTheme();renderAdmin();
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries,milestones]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),apiFetch('/milestones'),
+    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries,milestones,posts]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),apiFetch('/milestones'),apiFetch('/posts'),
     ]);
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data,milestones:milestones.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data,milestones:milestones.data,posts:posts.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state={...fresh,me:state.me};saveCache(fresh);
     if(changed&&!sheetOpen){initTheme();renderAdmin()}
