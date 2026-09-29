@@ -319,7 +319,7 @@ function agentCard(a,i){
   <a class="ag3-name" href="#/agents/${esc(a.id)}"><h3>${esc(a.name)}</h3></a>
   <div class="ag3-loc">${ico('pin')}${esc(a.city)}${COUNTRIES[a.code]?', '+esc(COUNTRIES[a.code]):''}</div>
   <div class="ag3-mid"><span class="ag3-person"><b>${esc(a.contact)}</b><small>${esc(a.role)}</small></span><span class="ag3-terr">${ico('route')}${esc(a.territory)}</span><span class="ag3-hours">${ico('clock')}${esc(a.hours)}</span></div>
-  <div class="ag3-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div></article>`;
+  <div class="ag3-btns">${a.phone?`<a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a>`:''}${wa?`<a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a>`:''}${a.email?`<a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a>`:''}</div></div></article>`;
 }
 function fcard(f,i){
   const ps=productsOf(f.id),h=HUES[i%HUES.length],ag=state.agents.find(x=>x.code===f.code);
@@ -840,7 +840,7 @@ function pageAgent(id){
   <div class="wrap fd-stripwrap"><dl class="fd-strip"><div><dt>${ico('users')}Contact</dt><dd>${esc(a.contact||'—')}</dd></div><div><dt>${ico('route')}Territory</dt><dd>${esc(a.territory||'—')}</dd></div><div><dt>${ico('clock')}Hours</dt><dd>${esc(a.hours||'—')}</dd></div><div><dt>${ico('phone')}Phone</dt><dd>${esc(a.phone)}</dd></div></dl></div>
   <div class="wrap fd-body"><div class="fd-two"><div class="fd-prose">${a.bio?paras(a.bio):`<p>${esc(a.name)} is our authorised sales centre for ${esc(a.territory||a.city)}.</p>`}</div>
   <div class="fd-aside"><div class="fd-card fd-person">${agentLogo(a)}<div><small>${esc(a.role||'Contact')}</small><b>${esc(a.contact||a.name)}</b></div></div>
-  <div class="fd-card"><h3>Get in touch</h3><div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div>
+  <div class="fd-card"><h3>Get in touch</h3><div class="ag2-btns">${a.phone?`<a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a>`:''}${wa?`<a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a>`:''}${a.email?`<a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a>`:''}</div></div>
   ${mapHtml(a.lat,a.lng,a.mapHeading||a.city,a.mapText||`Serving ${a.territory||a.city}`)}</div></div>
   ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Meet the team</h2></div></div>
   <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
