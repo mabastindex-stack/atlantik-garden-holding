@@ -118,7 +118,7 @@ const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const daysLeft=a=>a.until?Math.ceil((new Date(a.until+'T23:59:59')-new Date())/864e5):null;
 const isLive=a=>a.until?daysLeft(a)>=0:true;
 const activeOffers=()=>state.announcements.filter(a=>a.type==='offer'&&isLive(a));
-const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
+const UNIT={LITR:'LITR','MET/TON':'MET/TON',BAG:'BAG',GRE:'GRE',ML:'ML',KG:'KG',GR:'GR',BUT:'BUT',BOX:'BOX'};
 const money=n=>{const v=Number(n)||0;return (S().company.currency||'$')+v.toLocaleString('en-US',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})};
 const finalPrice=p=>p.discount?p.price*(1-p.discount/100):p.price;
 const priceHtml=p=>`${p.discount?`<s>${money(p.price)}</s>`:''}${money(finalPrice(p))}<small> / ${esc(UNIT[p.unit]||p.unit)}</small>`;

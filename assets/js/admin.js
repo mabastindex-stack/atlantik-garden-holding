@@ -79,7 +79,7 @@ const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" 
 let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],highlights:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
-const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
+const UNIT={LITR:'LITR','MET/TON':'MET/TON',BAG:'BAG',GRE:'GRE',ML:'ML',KG:'KG',GR:'GR',BUT:'BUT',BOX:'BOX'};
 const money=n=>{const v=Number(n)||0;return (S().company.currency||'$')+v.toLocaleString('en-US',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})};
 let current={arg:'overview'},formCtx={img:{}},pendingYes=null;
 
@@ -252,12 +252,12 @@ async function uploadFile(file){
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
-    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:'',image2:'',image3:''}),
+    make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'KG',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:'',image2:'',image3:''}),
     fields:(vals={})=>[
       {k:'name',l:'Product name',t:'text',req:1},{k:'category',l:'Category',t:'select',req:1,opts:state.categories.map(c=>[c.name,c.name])},
       {k:'country',l:'Country',t:'select',opts:[['','Not set'],...state.countries.map(c=>[c.code,c.name])]},
       {k:'factoryId',l:'Made at factory',t:'select',opts:[['','Not assigned'],...state.factories.filter(f=>!vals.country||f.code===vals.country||f.id===vals.factoryId).map(f=>[f.id,f.country+', '+f.agency])],hint:'Filtered to factories in the selected country.'},
-      {k:'unit',l:'Sold by',t:'select',opts:[['kg','Kilogram'],['ton','Tonne'],['L','Litre'],['box','Box']]},
+      {k:'unit',l:'Sold by',t:'select',opts:[['LITR','LITR'],['MET/TON','MET/TON'],['BAG','BAG'],['GRE','GRE'],['ML','ML'],['KG','KG'],['GR','GR'],['BUT','BUT'],['BOX','BOX']]},
       {k:'price',l:'Price',t:'number',step:'0.01',min:0},{k:'discount',l:'Discount (%)',t:'number',min:0,max:90},
       {k:'short',l:'Short line',t:'text',wide:1},{k:'description',l:'Description',t:'textarea',rows:4,wide:1},
       {k:'features',l:'Highlights (one per line)',t:'lines',rows:4,wide:1},
