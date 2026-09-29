@@ -250,7 +250,6 @@ async function uploadFile(file){
 
 /* ================= DASHBOARD DATA MODEL ================= */
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
-const HIGHLIGHT_SECTIONS={home_pillars:'Home page card',process_steps:'About page step',about_pillars:'About page stat pillar'};
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
     make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:'',image2:'',image3:''}),
@@ -340,7 +339,12 @@ const ENT={
       {k:'image',l:'Background photo',t:'image',wide:1,hint:'Only used on the Home page cards.'},
       {k:'statNumber',l:'Number',t:'number',min:0,hint:'Only used on the About page stat pillars.'},
       {k:'statLabel',l:'Number label',t:'text',ph:'countries of origin'}],
-    row:h=>rowHtml('highlights',h.id,ico(h.icon),h.title,HIGHLIGHT_SECTIONS[h.section]||h.section)},
+    row:h=>{
+      let meta=h.text.length>70?h.text.slice(0,70)+'…':h.text;
+      if(h.section==='home_pillars')meta=h.linkLabel?`Links to “${h.linkLabel}”`:'No link set';
+      else if(h.section==='about_pillars')meta=h.statNumber!=null?`${h.statNumber} ${h.statLabel||''}`.trim():'No number set';
+      return rowHtml('highlights',h.id,ico(h.icon),h.title,meta);
+    }},
   categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
     make:()=>({id:'',name:''}),
     fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
@@ -463,6 +467,12 @@ function pageLogin(){
 /* ================= DASHBOARD PAGES ================= */
 const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['posts','Moments'],['highlights','Highlights'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['milestones','About page timeline'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
+  if(tab==='highlights'){
+    const E=ENT.highlights,items=E.items();
+    const groups=[['home_pillars','Home page — “What you can count on”'],['process_steps','About page — “From field to pallet” steps'],['about_pillars','About page — stat pillars']];
+    return `<div class="dhead"><h2>${E.title}</h2><button class="btn btn-primary" data-act="add" data-kind="highlights">${ico('plus')}Add ${E.one}</button></div>
+    ${groups.map(([key,label])=>{const list=items.filter(h=>h.section===key);return `<div class="dpanel"><h3>${label}</h3><ul class="dlist">${list.length?list.map(E.row).join(''):'<li class="empty">Nothing here yet.</li>'}</ul></div>`}).join('')}`;
+  }
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
     return `<div class="dhead"><h2>${E.title}</h2><button class="btn btn-primary" data-act="add" data-kind="${tab}">${ico('plus')}Add ${E.one}</button></div><ul class="dlist">${items.length?items.map(E.row).join(''):`<li class="empty">Nothing here yet. Add your first ${E.one}.</li>`}</ul>`;
