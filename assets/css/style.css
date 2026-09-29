@@ -529,8 +529,6 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .rn-p .mini{width:34px;height:34px;margin-right:-8px}
 .rn-p .mini .ph b{font-size:1rem}
 .rn-p em{font-style:normal;margin-left:18px;font-size:.82rem;color:var(--ink-2)}
-.rn-ph{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:.4em .95em;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);font-size:.82rem;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rn-ph .ico{width:1em;height:1em;color:var(--fern);flex:none}
 @media (max-width:900px){.rt-row{grid-template-columns:repeat(2,minmax(0,1fr))}.rt-svg{display:none}.rt-hubrow{height:120px}.rn-tag{display:none}}
 
 /* ===== route map (home) ===== */
