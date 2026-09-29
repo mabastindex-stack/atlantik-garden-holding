@@ -30,6 +30,8 @@ class FactoryResource extends JsonResource
             'gallery' => $this->gallery ?? [],
             'lat' => $this->lat,
             'lng' => $this->lng,
+            'mapHeading' => $this->mapHeading,
+            'mapText' => $this->mapText,
             'description' => $this->description,
         ];
     }

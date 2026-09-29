@@ -9,7 +9,7 @@ class Agent extends Model
     protected $fillable = [
         'slug', 'name', 'contact', 'role', 'code', 'city', 'territory',
         'phone', 'whatsapp', 'email', 'hours', 'logo', 'video', 'gallery', 'bio',
-        'lat', 'lng',
+        'lat', 'lng', 'mapHeading', 'mapText',
     ];
 
     protected function casts(): array

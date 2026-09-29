@@ -32,6 +32,8 @@ class AgentResource extends JsonResource
             'bio' => $this->bio,
             'lat' => $this->lat,
             'lng' => $this->lng,
+            'mapHeading' => $this->mapHeading,
+            'mapText' => $this->mapText,
         ];
     }
 }

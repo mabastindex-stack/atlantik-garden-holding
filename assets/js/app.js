@@ -357,7 +357,7 @@ function pageFactory(id){
   <div class="fd-aside">${f.director?`<div class="fd-card fd-person"><span class="alogo" style="--h:${h}">${esc((f.director||'?')[0])}</span><div><small>Director</small><b>${esc(f.director)}</b></div></div>`:''}
   ${(f.certs||[]).length?`<div class="fd-card fd-certs"><h3>Certifications</h3><div class="tags">${f.certs.map(x=>`<span class="chip tag">${ico('check')}${esc(x)}</span>`).join('')}</div></div>`:''}
   ${ag?`<div class="fd-card fd-agent">${agentLogo(ag)}<div><small>Authorised agent</small><b>${esc(ag.name)}</b></div></div>`:''}
-  ${mapHtml(f.lat,f.lng,f.agency,`${f.city}, ${String(f.country).split(',')[0]}`)}
+  ${mapHtml(f.lat,f.lng,f.mapHeading||f.agency,f.mapText||`${f.city}, ${String(f.country).split(',')[0]}`)}
   <div class="fd-pass"><span class="fd-stamp"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="fdSeal2" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs><text><textPath href="#fdSeal2" startOffset="0">Authorised \u2022 Since ${esc(f.since)} \u2022 </textPath></text></svg><b>${esc(f.code)}</b></span><div><small>Team</small><b>${esc(f.employees)}</b></div></div></div></div>
   ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Inside the factory</h2></div></div>
   <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
@@ -841,7 +841,7 @@ function pageAgent(id){
   <div class="wrap fd-body"><div class="fd-two"><div class="fd-prose">${a.bio?paras(a.bio):`<p>${esc(a.name)} is our authorised sales centre for ${esc(a.territory||a.city)}.</p>`}</div>
   <div class="fd-aside"><div class="fd-card fd-person">${agentLogo(a)}<div><small>${esc(a.role||'Contact')}</small><b>${esc(a.contact||a.name)}</b></div></div>
   <div class="fd-card"><h3>Get in touch</h3><div class="ag2-btns"><a class="btn btn-primary btn-sm" href="${tel(a.phone)}">${ico('phone')}Call</a><a class="btn btn-ghost btn-sm" href="https://wa.me/${digits(wa)}" target="_blank" rel="noopener">${ico('whatsapp')}WhatsApp</a><a class="btn btn-ghost btn-sm" href="mailto:${esc(a.email)}">${ico('mail')}Email</a></div></div>
-  ${mapHtml(a.lat,a.lng,a.city,`Serving ${a.territory||a.city}`)}</div></div>
+  ${mapHtml(a.lat,a.lng,a.mapHeading||a.city,a.mapText||`Serving ${a.territory||a.city}`)}</div></div>
   ${gal.length?`<section class="ab-gal-sec"><div class="wrap"><div class="sec-head" data-reveal><h2>Meet the team</h2></div></div>
   <div class="ab-gal" data-reveal>${gal.map((u,i)=>`<figure class="ab-gph" style="--i:${i};--rot:${[-6,4,-3,7][i%4]}deg"><span class="ab-gph-num">0${i+1}</span><span class="ab-gph-ph"><img src="${esc(u)}" alt="" loading="lazy"></span></figure>`).join('')}</div></section>`:''}
   <div class="fd-pager"><a class="fdp" href="#/agents/${esc(prev.id)}"><span class="fdp-ic">${ico('left')}</span><span class="fdp-flag">${flag(prev.code)}</span><span><small>Previous</small><b>${esc(prev.name)}</b></span></a>
@@ -906,7 +906,7 @@ function pageAbout(){
   const gal=(state.slides||[]).filter(s=>s.image).slice(0,4);
   const certs=[...new Set(F.flatMap(f=>f.certs||[]))];
   const milestones=state.milestones||[];
-  const locHtml=mapHtml(c.hqLat,c.hqLng,c.address||c.name,'Visitors are welcome by appointment. Write to us first so the right person can meet you.');
+  const locHtml=mapHtml(c.hqLat,c.hqLng,c.mapHeading||c.address||c.name,c.mapText||'Visitors are welcome by appointment. Write to us first so the right person can meet you.');
   return `<section class="ab-hero grain"><div class="ab-hero-bg" aria-hidden="true">${heroImgs.map((u,i)=>`<div class="ab-slide${i===0?' on':''}" style="--dl:-${i*7}s">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:''}</div>`).join('')}</div>${wavesHtml('b')}
   <div class="wrap ab-hero-in"><span class="ab-mark">${c.logo?`<img src="${esc(c.logo)}" alt="">`:LOGO}</span>
   <h1 class="ab-name" aria-label="${esc(c.name)}">${letters}</h1><p class="lead ab-tag">${esc(c.aboutLead||c.tagline||'')}</p>

@@ -80,6 +80,8 @@ class FactoryController extends Controller
             'gallery.*' => ['string'],
             'lat' => ['nullable', 'numeric', 'between:-90,90'],
             'lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'mapHeading' => ['nullable', 'string', 'max:120'],
+            'mapText' => ['nullable', 'string', 'max:300'],
             'description' => ['nullable', 'string'],
         ]);
     }

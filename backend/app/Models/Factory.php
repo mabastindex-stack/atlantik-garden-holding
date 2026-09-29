@@ -10,7 +10,7 @@ class Factory extends Model
     protected $fillable = [
         'slug', 'country', 'code', 'city', 'agency', 'director',
         'since', 'employees', 'capacity', 'certs', 'image', 'video', 'gallery',
-        'lat', 'lng', 'description',
+        'lat', 'lng', 'mapHeading', 'mapText', 'description',
     ];
 
     protected function casts(): array
