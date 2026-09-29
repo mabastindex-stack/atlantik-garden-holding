@@ -62,14 +62,21 @@ const I={
   tag:'<path d="M3 12.5L11.5 4H19v7.5L10.5 21z"/><circle cx="15" cy="8" r="1.5"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   pin:'<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
-  film:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 5v14M16 5v14M3 9h5M3 15h5M16 9h5M16 15h5"/>'
+  film:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 5v14M16 5v14M3 9h5M3 15h5M16 9h5M16 15h5"/>',
+  leaf:'<path d="M5 19c0-9 5-14 14-14 0 9-5 14-14 14z"/><path d="M5 19c3-5 6-8 10-10"/>',
+  route:'<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H14a3.5 3.5 0 0 0 0-7h-4a3.5 3.5 0 0 1 0-7h5.5"/>',
+  truck:'<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8C9.5 8 8 7 8 5.5S9.8 3 12 8zM12 8c2.5 0 4-1 4-2.5S14.2 3 12 8z"/>',
+  list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  grid:'<rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.6"/>',
+  sparkle:'<path d="M12 3l1.8 5.6L19.5 10l-5.7 1.4L12 17l-1.8-5.6L4.5 10l5.7-1.4z"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],me:null};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],highlights:[],me:null};
 const S=()=>state.settings;
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
 const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
@@ -243,6 +250,7 @@ async function uploadFile(file){
 
 /* ================= DASHBOARD DATA MODEL ================= */
 const rowHtml=(kind,id,thumb,title,meta,tint)=>`<li class="drow"${tint?` style="--tint:${esc(tint)}"`:''}><div class="dthumb">${thumb}</div><div class="dinfo"><b>${esc(title)}</b><span>${esc(meta)}</span></div><div class="dact"><button class="btn btn-ghost btn-sm" data-act="edit" data-kind="${kind}" data-id="${esc(id)}">Edit</button><button class="btn btn-ghost btn-sm danger" data-act="del" data-kind="${kind}" data-id="${esc(id)}">Delete</button></div></li>`;
+const HIGHLIGHT_SECTIONS={home_pillars:'Home page card',process_steps:'About page step',about_pillars:'About page stat pillar'};
 const ENT={
   products:{one:'product',title:'Products',apiPath:'/products',items:()=>state.products,label:p=>p.name,
     make:()=>({id:uid('p-'),name:'',category:'Fruit',country:'',factoryId:'',price:0,unit:'kg',discount:0,short:'',description:'',features:[],packaging:'',shelfLife:'',moq:'',season:'',tint:'#CFE3B5',image:'',image2:'',image3:''}),
@@ -320,6 +328,19 @@ const ENT={
       {k:'image',l:'Photo',t:'image',wide:1,hint:'Used when the post type is Photo.'},
       {k:'video',l:'Video',t:'video',wide:1,hint:'Used when the post type is Video. Plays automatically, muted, on loop.'}],
     row:p=>rowHtml('posts',p.id,p.type==='video'?`<span class="ph" aria-hidden="true">${ico('youtube')}</span>`:photo(p.image,p.title),p.title,p.type==='video'?'Video moment':'Photo moment')},
+  highlights:{one:'highlight',title:'Highlights (home & about cards)',apiPath:'/highlights',items:()=>state.highlights,label:h=>h.title,
+    make:()=>({id:'',section:'home_pillars',icon:'leaf',title:'',text:'',linkUrl:'',linkLabel:'',image:'',statNumber:'',statLabel:''}),
+    fields:()=>[
+      {k:'section',l:'Where does this show',t:'select',opts:[['home_pillars','Home page — “What you can count on”'],['process_steps','About page — “From field to pallet” steps'],['about_pillars','About page — stat pillars']]},
+      {k:'icon',l:'Icon',t:'select',opts:[['leaf','Leaf'],['box','Box'],['route','Route'],['search','Search'],['truck','Truck'],['gift','Gift'],['check','Check'],['users','Users'],['pin','Pin'],['clock','Clock'],['list','List'],['grid','Grid'],['sparkle','Sparkle']]},
+      {k:'title',l:'Title',t:'text',req:1,wide:1},
+      {k:'text',l:'Text',t:'textarea',rows:3,req:1,wide:1},
+      {k:'linkUrl',l:'Link',t:'text',ph:'#/factories',hint:'Only used on the Home page cards.'},
+      {k:'linkLabel',l:'Link label',t:'text',ph:'Meet the factories'},
+      {k:'image',l:'Background photo',t:'image',wide:1,hint:'Only used on the Home page cards.'},
+      {k:'statNumber',l:'Number',t:'number',min:0,hint:'Only used on the About page stat pillars.'},
+      {k:'statLabel',l:'Number label',t:'text',ph:'countries of origin'}],
+    row:h=>rowHtml('highlights',h.id,ico(h.icon),h.title,HIGHLIGHT_SECTIONS[h.section]||h.section)},
   categories:{one:'category',title:'Categories',apiPath:'/categories',items:()=>state.categories,label:c=>c.name,
     make:()=>({id:'',name:''}),
     fields:()=>[{k:'name',l:'Category name',t:'text',req:1,wide:1}],
@@ -440,7 +461,7 @@ function pageLogin(){
 }
 
 /* ================= DASHBOARD PAGES ================= */
-const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['posts','Moments'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['milestones','About page timeline'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
+const DTABS=[['overview','Overview'],['products','Products'],['factories','Factories'],['agents','Agents'],['posts','Moments'],['highlights','Highlights'],['notices','Notices and offers'],['faqs','FAQs'],['slides','Home cover photos'],['milestones','About page timeline'],['categories','Categories'],['countries','Countries'],['site','Site and profile'],['account','Account settings']];
 function dashBody(tab){
   if(ENT[tab]){
     const E=ENT[tab],items=E.items();
@@ -488,12 +509,20 @@ function openEntityForm(kind,id){
   fields.filter(f=>f.t==='gallery').forEach(f=>formCtx.img[f.k]=(vals[f.k]||[]).slice());
   openSheet(`<form class="fpanel" data-form="${kind}" data-id="${esc(id||'')}" novalidate><button type="button" class="x" data-act="close" aria-label="Close">${ico('close')}</button><h2>${cur?'Edit':'Add'} ${E.one}</h2><div class="fbody2">${fields.map(f=>fieldHtml(f,vals[f.k])).join('')}</div><footer><button type="button" class="btn btn-ghost" data-act="close">Cancel</button><button class="btn btn-primary" type="submit">Save ${E.one}</button></footer></form>`,{cls:'wide'});
   if(kind==='posts'){const f=$('.fpanel[data-form=posts]');if(f)syncPostMediaFields(f)}
+  if(kind==='highlights'){const f=$('.fpanel[data-form=highlights]');if(f)syncHighlightFields(f)}
 }
 function syncPostMediaFields(form){
   const type=form.querySelector('select[name="type"]');if(!type)return;
   const imgField=form.querySelector('[data-k="image"]'),vidField=form.querySelector('[data-k="video"]');
   if(imgField)imgField.closest('.field').classList.toggle('hidden',type.value==='video');
   if(vidField)vidField.closest('.field').classList.toggle('hidden',type.value==='image');
+}
+function syncHighlightFields(form){
+  const sec=form.querySelector('select[name="section"]');if(!sec)return;
+  const showHome=sec.value==='home_pillars',showAbout=sec.value==='about_pillars';
+  ['linkUrl','linkLabel'].forEach(k=>{const el=form.querySelector(`[name="${k}"]`);if(el)el.closest('.field').classList.toggle('hidden',!showHome)});
+  const imgField=form.querySelector('[data-k="image"]');if(imgField)imgField.closest('.field').classList.toggle('hidden',!showHome);
+  ['statNumber','statLabel'].forEach(k=>{const el=form.querySelector(`[name="${k}"]`);if(el)el.closest('.field').classList.toggle('hidden',!showAbout)});
 }
 
 /* ================= ADMIN ROUTER ================= */
@@ -564,6 +593,10 @@ document.addEventListener('change',e=>{
     if(inp.name==='type'){
       const form=inp.closest('form[data-form="posts"]');
       if(form)syncPostMediaFields(form);
+    }
+    if(inp.name==='section'){
+      const form=inp.closest('form[data-form="highlights"]');
+      if(form)syncHighlightFields(form);
     }
     if(inp.name==='country'){
       const form=inp.closest('form[data-form="products"]');
@@ -692,16 +725,16 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],...cached,me:null};
+    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],highlights:[],...cached,me:null};
     initTheme();renderAdmin();
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries,milestones,posts]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),apiFetch('/milestones'),apiFetch('/posts'),
+    const [settings,factories,products,agents,announcements,faqs,slides,categories,countries,milestones,posts,highlights]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/categories'),apiFetch('/countries'),apiFetch('/milestones'),apiFetch('/posts'),apiFetch('/highlights'),
     ]);
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data,milestones:milestones.data,posts:posts.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,categories:categories.data,countries:countries.data,milestones:milestones.data,posts:posts.data,highlights:highlights.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state={...fresh,me:state.me};saveCache(fresh);
     if(changed&&!sheetOpen){initTheme();renderAdmin()}

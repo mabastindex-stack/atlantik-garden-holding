@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\FactoryController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\HeroSlideController;
+use App\Http\Controllers\Api\HighlightController;
 use App\Http\Controllers\Api\MilestoneController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProductController;
@@ -26,6 +27,7 @@ Route::apiResource('categories', CategoryController::class)->only(['index']);
 Route::apiResource('countries', CountryController::class)->only(['index']);
 Route::apiResource('faqs', FaqController::class)->only(['index']);
 Route::apiResource('hero-slides', HeroSlideController::class)->only(['index']);
+Route::apiResource('highlights', HighlightController::class)->only(['index', 'show']);
 Route::apiResource('milestones', MilestoneController::class)->only(['index']);
 Route::apiResource('posts', PostController::class)->only(['index', 'show']);
 
@@ -44,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('countries', CountryController::class)->except(['index', 'show']);
     Route::apiResource('faqs', FaqController::class)->except(['index', 'show']);
     Route::apiResource('hero-slides', HeroSlideController::class)->except(['index', 'show']);
+    Route::apiResource('highlights', HighlightController::class)->except(['index', 'show']);
     Route::apiResource('milestones', MilestoneController::class)->except(['index', 'show']);
     Route::apiResource('posts', PostController::class)->except(['index', 'show']);
 });

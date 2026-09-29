@@ -102,7 +102,7 @@ const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsAp
 const LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="var(--btn)"/><path d="M24 33c0-9 2-14 10-18-1 9-4 15-10 18z" fill="var(--on-btn)"/><path d="M24 33c0-6-1-10-8-13 0 7 3 11 8 13z" fill="var(--on-btn)" opacity=".65"/><path d="M9 38c4-3 7-3 10 0s6 3 10 0 7-3 10 0" stroke="var(--on-btn)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 
 /* ================= STATE ================= */
-let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[]};
+let state={settings:{company:{},socials:{},agent:{}},factories:[],products:[],agents:[],announcements:[],faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],highlights:[]};
 const S=()=>state.settings;
 const fById=id=>state.factories.find(f=>f.id===id);
 const productsOf=id=>state.products.filter(p=>p.factoryId===id);
@@ -417,7 +417,7 @@ function pageFactory(id){
 }
 
 
-const words=t=>String(t).split(/\s+/).filter(Boolean).map((w,i)=>`<span class="w" style="--i:${i}">${esc(w)}</span>`).join(' ');
+const words=t=>String(t==null?'':t).split(/\s+/).filter(Boolean).map((w,i)=>`<span class="w" style="--i:${i}">${esc(w)}</span>`).join(' ');
 const photo=(src,alt,fb)=>{const u=src||fb;return `<span class="ph" aria-hidden="true"><b>${esc(((alt||'').trim()[0])||'')}</b></span>${u?`<img class="photo" src="${esc(u)}" alt="${esc(alt)}" loading="lazy" decoding="async" data-photo${fb&&src&&src!==fb?` data-fb="${esc(fb)}"`:''}>`:''}`};
 const fphoto=f=>`<span class="fph grain" aria-hidden="true"><b>${esc(String(f.country||'').split(',')[0])}</b></span>${f.image?`<img class="photo" src="${esc(f.image)}" alt="" loading="lazy" decoding="async" data-photo>`:''}`;
 const notFound=()=>`<section class="wrap page-head"><h1>Page not found</h1><p class="lead">That page doesn’t exist.</p><p style="margin-top:24px"><a class="btn btn-primary" href="#/">Back to home</a></p></section>`;
@@ -646,12 +646,11 @@ function initFx(){
 
 /* ===== values ===== */
 function valuesHtml(){
-  const pillars=[['leaf','Grown near the source','Growers work within a short drive of each factory, so fruit and grain reach the packing line hours after harvest.','#/factories','Meet the factories','assets/img/pillar-grow.jpg',REMOTE.pillar1],
-    ['box','Packed where it is picked','Sorting, packing and quality checks happen on site, with lot numbers that follow the product all the way to you.','#/products','Browse products','assets/img/pillar-pack.jpg',REMOTE.pillar2],
-    ['route','Delivered by people you can call','Every order goes through an authorised agent who knows your market, your paperwork and your delivery window.','#/agents','Find an agent','assets/img/pillar-deliver.jpg',REMOTE.pillar3]];
+  const pillars=(state.highlights||[]).filter(h=>h.section==='home_pillars');
+  if(!pillars.length)return '';
   return `<section class="sec wrap vals"><div class="sec-head" data-reveal><h2>What you can count on</h2><p class="lead" style="max-width:38ch">Three promises that stand behind every order.</p></div>
-  <div class="vgrid" data-stagger>${pillars.map(([i,t,d,h,l,src,fb])=>`<article class="vc"><div class="vc-img">${photo(src,t,fb)}</div>
-  <div class="vc-body"><span class="vc-med"><i class="vc-ring"></i>${ico(i)}</span><h3>${t}</h3><p>${d}</p><a class="vc-link" href="${h}">${l}${ico('arrow')}</a></div></article>`).join('')}</div></section>`;
+  <div class="vgrid" data-stagger>${pillars.map(h=>`<article class="vc"><div class="vc-img">${photo(h.image,h.title)}</div>
+  <div class="vc-body"><span class="vc-med"><i class="vc-ring"></i>${ico(h.icon)}</span><h3>${esc(h.title)}</h3><p>${esc(h.text)}</p>${h.linkUrl?`<a class="vc-link" href="${esc(h.linkUrl)}">${esc(h.linkLabel||'Learn more')}${ico('arrow')}</a>`:''}</div></article>`).join('')}</div></section>`;
 }
 
 /* ===== route: holding network ===== */
@@ -770,10 +769,11 @@ function faqHtml(){
 
 /* ===== journey: field to pallet ===== */
 function journeyHtml(){
-  const steps=[['leaf','Harvest','Picked at peak ripeness by the growers we work with, close to each factory.'],['search','Sort and grade','Optical and hand sorting by size, colour and quality, with samples tested in our lab.'],['box','Pack and label','Packed on site in the format you need, with a lot number that stays with the product.'],['route','Ship and deliver','Sent by sea or road, in refrigerated containers where needed, and handed to your agent.']];
+  const steps=(state.highlights||[]).filter(h=>h.section==='process_steps');
+  if(!steps.length)return '';
   return `<section class="jn grain" data-reveal><div class="jn-bg" aria-hidden="true"><img src="assets/img/story.jpg" data-fb="${esc(REMOTE.story)}" alt="" loading="lazy" data-photo></div>
   <div class="wrap jn-in"><div class="jn-head"><h2>From field to pallet</h2><p class="lead">Four steps, the same care at every one.</p></div>
-  <div class="jn-track"><i class="jn-line" aria-hidden="true"></i><i class="jn-dot" aria-hidden="true"></i><ol class="jn-row">${steps.map(([i,t,d],k)=>`<li class="jn-col" style="--k:${k}"><span class="jn-node">${ico(i)}</span><span class="jn-stem" aria-hidden="true"></span><div class="jn-card"><h3>${t}</h3><p>${d}</p></div></li>`).join('')}</ol></div></div></section>`;
+  <div class="jn-track"><i class="jn-line" aria-hidden="true"></i><i class="jn-dot" aria-hidden="true"></i><ol class="jn-row">${steps.map((h,k)=>`<li class="jn-col" style="--k:${k}"><span class="jn-node">${ico(h.icon)}</span><span class="jn-stem" aria-hidden="true"></span><div class="jn-card"><h3>${esc(h.title)}</h3><p>${esc(h.text)}</p></div></li>`).join('')}</ol></div></div></section>`;
 }
 
 
@@ -979,9 +979,7 @@ function pageAbout(){
   const years=new Date().getFullYear()-since;
   const slideImgs=[c.aboutImage,...(state.slides||[]).map(s=>s.image)].filter(Boolean);
   const heroImgs=(slideImgs.length?slideImgs:[null]).slice(0,3);
-  const pillars=[['leaf','Grown near the source','We choose growers who work close to each factory, so produce reaches the packing line hours after harvest.',ncty,'countries of origin'],
-    ['box','Handled with care','Every factory packs on site, so nothing travels further than it has to before it reaches your agent.',state.products.length,'products packed at source'],
-    ['route','Delivered in person','No call centres. Every order is answered by an agent who knows your market by name.',state.agents.length,'authorised agents on call']];
+  const pillars=(state.highlights||[]).filter(h=>h.section==='about_pillars');
   const letters=[...String(c.name||'')].map((ch,i)=>ch===' '?'<span class="ab-l sp"></span>':`<span class="ab-l" style="--i:${i}">${esc(ch)}</span>`).join('');
   const gal=(state.slides||[]).filter(s=>s.image).slice(0,4);
   const certs=[...new Set(F.flatMap(f=>f.certs||[]))];
@@ -992,7 +990,7 @@ function pageAbout(){
   <h1 class="ab-name" aria-label="${esc(c.name)}">${letters}</h1><p class="lead ab-tag">${esc(c.aboutLead||c.tagline||'')}</p>
   <ul class="ab-stats">${[[years,'Years growing'],[F.length,'Factories'],[ncty,'Countries'],[state.products.length,'Products']].map(([n,l])=>`<li><b data-count="${n}">${n}</b><span>${esc(l)}</span></li>`).join('')}</ul></div></section>
   <section class="wrap ab-story"><div class="ab-story-grid"><div class="ab-drop-wrap" data-reveal><div class="ab-founded"><b>${since}</b><span>Founded</span><i>${years}\u00A0yr${years===1?'':'s'}\u00A0of\u00A0service</i></div><div class="prose ab-drop">${paras(c.story)}</div></div>
-  <div class="ab-pillars" data-stagger>${pillars.map(([i,t,d,n,l],k)=>`<div class="ab-pill"><span class="ab-pill-num">0${k+1}</span><span class="ab-pill-ic">${ico(i)}</span><div class="ab-pill-b"><h3>${t}</h3><p>${d}</p><span class="ab-pill-stat"><b data-count="${n}">${n}</b>${esc(l)}</span></div></div>`).join('')}</div></div></section>
+  ${pillars.length?`<div class="ab-pillars" data-stagger>${pillars.map((h,k)=>`<div class="ab-pill"><span class="ab-pill-num">0${k+1}</span><span class="ab-pill-ic">${ico(h.icon)}</span><div class="ab-pill-b"><h3>${esc(h.title)}</h3><p>${esc(h.text)}</p>${h.statNumber!=null?`<span class="ab-pill-stat"><b data-count="${h.statNumber}">${h.statNumber}</b>${esc(h.statLabel||'')}</span>`:''}</div></div>`).join('')}</div>`:''}</div></section>
   ${locHtml?`<section class="wrap ab-map-sec"><div class="sec-head" data-reveal><h2>Where to find us</h2></div><div data-reveal>${locHtml}</div></section>`:''}
   ${milestones.length?`<section class="ab-time grain"><div class="ab-time-bg" aria-hidden="true">${heroImgs[0]?`<img src="${esc(heroImgs[0])}" alt="" loading="lazy">`:''}</div>${wavesHtml('t')}<span class="ab-time-yr" aria-hidden="true">${esc(String(since))}</span>
   <div class="wrap ab-time-in"><div class="sec-head" data-reveal><span class="ab-ag-kick" style="color:var(--citrus)">Since ${esc(String(since))}</span><h2 style="color:#fff">How we got here</h2></div>
@@ -1171,17 +1169,17 @@ function bootError(){
 async function boot(){
   const cached=loadCache();
   if(cached){
-    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],...cached};
+    state={faqs:[],slides:[],categories:[],countries:[],milestones:[],posts:[],highlights:[],...cached};
     initTheme();renderChrome();route(true);
   }else{
     $('#main').innerHTML=`<div class="wrap" style="min-height:60vh;display:grid;place-items:center;text-align:center"><p class="lead">Loading…</p></div>`;
   }
   try{
-    const [settings,factories,products,agents,announcements,faqs,slides,countries,milestones,posts]=await Promise.all([
-      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),apiFetch('/milestones'),apiFetch('/posts'),
+    const [settings,factories,products,agents,announcements,faqs,slides,countries,milestones,posts,highlights]=await Promise.all([
+      apiFetch('/settings'),apiFetch('/factories'),apiFetch('/products'),apiFetch('/agents'),apiFetch('/announcements'),apiFetch('/faqs'),apiFetch('/hero-slides'),apiFetch('/countries'),apiFetch('/milestones'),apiFetch('/posts'),apiFetch('/highlights'),
     ]);
     products.data.forEach(p=>{if(PFB[p.id])p.imageFb=PFB[p.id]});
-    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data,milestones:milestones.data,posts:posts.data};
+    const fresh={settings,factories:factories.data,products:products.data,agents:agents.data,announcements:announcements.data,faqs:faqs.data,slides:slides.data,countries:countries.data,milestones:milestones.data,posts:posts.data,highlights:highlights.data};
     const changed=!cached||JSON.stringify(cached)!==JSON.stringify(fresh);
     state=fresh;saveCache(fresh);
     if(changed){initTheme();renderChrome();route(true)}
