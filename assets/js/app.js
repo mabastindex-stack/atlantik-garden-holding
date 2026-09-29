@@ -93,7 +93,8 @@ const I={
   linkedin:'<path d="M5 9.5h3V19H5zM6.5 4.8a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM11 9.5h2.8v1.3c.6-1 1.6-1.5 3-1.5 2.7 0 3.2 1.8 3.2 4V19h-3v-4.8c0-1.1 0-2.2-1.5-2.2S14 13 14 14.1V19h-3z"/>',
   tiktok:'<path d="M14 4v10.2a3.7 3.7 0 1 1-3.7-3.7"/><path d="M14 4c.4 2.5 2 4 4.6 4.3"/>',
   youtube:'<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M10.5 9.5v5l4.2-2.5z"/>',
-  users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9.3" r="2.4"/><path d="M15.7 14.3c2.7.5 4.3 2.4 4.3 5.7"/>'
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9.3" r="2.4"/><path d="M15.7 14.3c2.7.5 4.3 2.4 4.3 5.7"/>',
+  filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',chev:'<path d="M6 9l6 6 6-6"/>'
 };
 const ico=(k,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]||''}</svg>`;
 const SOCIAL_LABELS={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',tiktok:'TikTok',youtube:'YouTube'};
@@ -111,7 +112,7 @@ const UNIT={kg:'kg',ton:'tonne',L:'litre',box:'box'};
 const money=n=>{const v=Number(n)||0;return (S().company.currency||'$')+v.toLocaleString('en-US',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})};
 const finalPrice=p=>p.discount?p.price*(1-p.discount/100):p.price;
 const priceHtml=p=>`${p.discount?`<s>${money(p.price)}</s>`:''}${money(finalPrice(p))}<small> / ${esc(UNIT[p.unit]||p.unit)}</small>`;
-const ui={cat:'All',q:'',otype:'all',origin:'All',season:false,offer:false,sort:'featured',view:'grid'};
+const ui={cat:'All',q:'',otype:'all',origin:'All',season:false,offer:false,sort:'featured',view:'grid',moreOpen:false};
 let current={page:null,arg:null},cleanup=null;
 
 /* ================= THEME / TOAST ================= */
@@ -243,20 +244,41 @@ function startPxRotate(root){
 }
 
 /* ===== products: filter panel ===== */
+const originCount=name=>{const f=state.factories.find(x=>x.country===name||x.id===name);return f?productsOf(f.id).length:0};
 function panelHtml(){
   const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))];
   const origins=[...new Set(state.factories.map(f=>({code:f.code,name:String(f.country).split(',')[0]})).map(JSON.stringify))].map(JSON.parse);
+  const moreCount=(ui.origin!=='All'?1:0)+(ui.season?1:0)+(ui.offer?1:0);
   return `<div class="prd-panel"><div class="pf-row"><label class="pf-search"><input id="q" type="search" autocomplete="off" placeholder="Search products" value="${esc(ui.q)}">${ico('search')}<kbd>/</kbd></label>
   <label class="pf-sort"><span>Sort</span><select id="psort">${[['featured','Featured'],['name','A to Z'],['price-asc','Price: low to high'],['price-desc','Price: high to low']].map(([v,l])=>`<option value="${v}"${ui.sort===v?' selected':''}>${l}</option>`).join('')}</select></label>
   <span class="vt" role="group" aria-label="View"><button class="vb" data-act="view" data-v="grid" aria-pressed="${ui.view==='grid'}" aria-label="Grid view">${ico('grid')}</button><button class="vb" data-act="view" data-v="list" aria-pressed="${ui.view==='list'}" aria-label="List view">${ico('list')}</button></span></div>
   <div class="seg" id="seg"><div class="seg-in" id="segIn"><span class="seg-pill" id="segPill"></span><button class="sg" data-act="cat" data-v="All" aria-pressed="${ui.cat==='All'}">All<em>${state.products.length}</em></button>${cats.map(c=>`<button class="sg" data-act="cat" data-v="${esc(c)}" aria-pressed="${ui.cat===c}">${esc(c)}<em>${state.products.filter(p=>p.category===c).length}</em></button>`).join('')}</div></div>
-  <div class="pf-c"><div class="ocs">${origins.map(o=>`<button class="oc" data-act="origin" data-v="${esc(o.name)}" aria-pressed="${ui.origin===o.name}">${flag(o.code)}${esc(o.name)}</button>`).join('')}</div>
-  <div class="pf-sw"><button class="sw2" data-act="tog" data-k="season" aria-pressed="${ui.season}"><i></i>In season now</button><button class="sw2" data-act="tog" data-k="offer" aria-pressed="${ui.offer}"><i></i>On offer</button></div></div></div>`;
+  <button class="pf-more-tog" type="button" data-act="moreTog" aria-expanded="${ui.moreOpen}">${ico('filter')}More filters${moreCount?`<em>${moreCount}</em>`:''}<i class="pf-more-ic">${ico('chev')}</i></button>
+  <div class="pf-more" id="pfMore"${ui.moreOpen?'':' hidden'}><div class="pf-more-in">
+  <div class="pf-grp"><span class="pf-grp-l">Origin</span><div class="ocs">${origins.map(o=>`<button class="oc" data-act="origin" data-v="${esc(o.name)}" aria-pressed="${ui.origin===o.name}">${flag(o.code)}${esc(o.name)}<em>${originCount(o.name)}</em></button>`).join('')}</div></div>
+  <div class="pf-grp"><span class="pf-grp-l">Availability</span><div class="pf-sw"><button class="sw2" data-act="tog" data-k="season" aria-pressed="${ui.season}"><i></i>In season now</button><button class="sw2" data-act="tog" data-k="offer" aria-pressed="${ui.offer}"><i></i>On offer</button></div></div>
+  </div></div></div>`;
 }
 function movePill(){
   const wrap=$('#segIn'),pill=$('#segPill');if(!wrap||!pill)return;
   const on=$('.sg[aria-pressed="true"]',wrap);if(!on)return;
   pill.style.setProperty('--w',on.offsetWidth+'px');pill.style.setProperty('--x',on.offsetLeft+'px');
+}
+function toggleMore(btn){
+  ui.moreOpen=!ui.moreOpen;
+  const box=$('#pfMore');if(!box)return;
+  btn.setAttribute('aria-expanded',String(ui.moreOpen));
+  if(REDUCED){box.hidden=!ui.moreOpen;return}
+  if(ui.moreOpen){
+    box.hidden=false;
+    const h=box.scrollHeight;
+    box.style.maxHeight='0px';
+    requestAnimationFrame(()=>{box.style.maxHeight=h+'px'});
+  }else{
+    box.style.maxHeight=box.scrollHeight+'px';
+    requestAnimationFrame(()=>{box.style.maxHeight='0px'});
+    box.addEventListener('transitionend',()=>{if(!ui.moreOpen)box.hidden=true},{once:true});
+  }
 }
 function activeHtml(){
   const chips=[];
@@ -291,6 +313,13 @@ function renderGrid(){
   $$('.oc',document).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===ui.origin)));
   $$('.sw2',document).forEach(b=>b.setAttribute('aria-pressed',String(!!ui[b.dataset.k])));
   const prd=$('.prd');if(prd)prd.style.setProperty('--cat',catColor(ui.cat));
+  const moreTog=$('.pf-more-tog');
+  if(moreTog){
+    const n=(ui.origin!=='All'?1:0)+(ui.season?1:0)+(ui.offer?1:0);
+    let em=$('em',moreTog);
+    if(n&&!em){em=document.createElement('em');moreTog.insertBefore(em,$('.pf-more-ic',moreTog))}
+    if(em){if(n)em.textContent=n;else em.remove()}
+  }
   movePill();
   const act=$('#pact');if(act)act.innerHTML=activeHtml();
   reveal(g);
@@ -1060,6 +1089,7 @@ document.addEventListener('click',e=>{
     case'cat':ui.cat=d.v;renderGrid();break;
     case'origin':ui.origin=d.v;renderGrid();break;
     case'tog':ui[d.k]=!ui[d.k];renderGrid();break;
+    case'moreTog':toggleMore(t);break;
     case'view':ui.view=d.v;renderGrid();break;
     case'unf':{const k=d.k;if(k==='cat')ui.cat='All';else if(k==='origin')ui.origin='All';else if(k==='season')ui.season=false;else if(k==='offer')ui.offer=false;else if(k==='q'){ui.q='';const q=$('#q');if(q)q.value=''}renderGrid();break}
     case'clear':ui.cat='All';ui.q='';ui.origin='All';ui.season=false;ui.offer=false;{const q=$('#q');if(q)q.value=''}renderGrid();break;
