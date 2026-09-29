@@ -1068,7 +1068,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fz-bgs{position:absolute;inset:0;z-index:-3}
 .fz-bg{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s ease;background:linear-gradient(135deg,hsl(var(--h) 34% 22%),hsl(var(--h) 44% 10%))}
 .fz-bg.on{opacity:1}
-.fz-flag{position:absolute;left:-10%;top:-10%;width:120%;height:120%;filter:blur(46px) saturate(1.25);opacity:.62;animation:fzdrift 26s ease-in-out infinite alternate}
+.fz-flag{position:absolute;left:-10%;top:-10%;width:120%;height:120%;object-fit:cover;filter:blur(46px) saturate(1.25);opacity:.62;animation:fzdrift 26s ease-in-out infinite alternate}
 @keyframes fzdrift{from{transform:scale(1.15) translate(0,0)}to{transform:scale(1.3) translate(-4%,3%)}}
 .fz-bg .photo{z-index:1}
 .fz-aur{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(55% 60% at 85% 10%,hsl(var(--h) 70% 60%/.32),transparent 70%);animation:fxaur 12s ease-in-out infinite alternate}
@@ -1503,7 +1503,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fatlas-ring.r2{inset:0;animation:spin 80s linear infinite reverse}
 .fa-orb{position:absolute;left:50%;top:50%;width:56px;height:38px;margin:-19px 0 0 -28px;border-radius:8px;overflow:hidden;box-shadow:0 14px 26px -10px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.7);transform:rotate(calc(var(--i)/var(--n)*360deg)) translate(clamp(120px,15vw,168px)) rotate(calc(var(--i)/var(--n)*-360deg));animation:orbf 34s linear infinite;transform-origin:28px 19px}
 @keyframes orbf{from{transform:rotate(calc(var(--i)/var(--n)*360deg + 0deg)) translate(clamp(112px,14vw,166px)) rotate(calc(var(--i)/var(--n)*-360deg + 0deg))}to{transform:rotate(calc(var(--i)/var(--n)*360deg + 360deg)) translate(clamp(112px,14vw,166px)) rotate(calc(var(--i)/var(--n)*-360deg - 360deg))}}
-.fa-orb svg{width:100%;height:100%;display:block}
+.fa-orb-flag{width:100%;height:100%;display:block;object-fit:cover}
 @media (max-width:900px){.fatlas-in{grid-template-columns:minmax(0,1fr)}.fatlas-orbit{order:-1;height:220px}}
 
 /* ===== factories index: ordered list strip ===== */
@@ -1675,7 +1675,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 @keyframes bfbob{to{transform:translateY(-16px) rotateZ(1deg) rotateX(3deg)}}
 .ah-bf-pole{position:absolute;left:-3%;top:-8%;bottom:-6%;width:5px;border-radius:3px;background:linear-gradient(180deg,#E8C878,#9C7A2E);box-shadow:0 0 10px rgba(0,0,0,.3)}
 .ah-bf-pole::before{content:'';position:absolute;left:50%;top:-9px;translate:-50% 0;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#FFEFAE,#C9971F);box-shadow:0 4px 8px rgba(0,0,0,.35)}
-.ah-bf-svg{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:60/40;transform-origin:0% 50%;filter:drop-shadow(0 24px 42px rgba(0,0,0,.45)) drop-shadow(0 0 32px rgba(251,209,22,.28));animation:bfwave 3.2s ease-in-out infinite}
+.ah-bf-svg{position:relative;z-index:1;width:100%;height:auto;aspect-ratio:60/40;object-fit:cover;transform-origin:0% 50%;filter:drop-shadow(0 24px 42px rgba(0,0,0,.45)) drop-shadow(0 0 32px rgba(251,209,22,.28));animation:bfwave 3.2s ease-in-out infinite}
 @keyframes bfwave{0%,100%{transform:skewY(0deg) scaleY(1) rotateY(0deg)}25%{transform:skewY(-2.2deg) scaleY(1.015) rotateY(2deg)}50%{transform:skewY(0deg) scaleY(.985) rotateY(0deg)}75%{transform:skewY(2.2deg) scaleY(1.015) rotateY(-2deg)}}
 .ah-bf-shine{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(75deg,transparent 30%,rgba(255,255,255,.55) 45%,transparent 60%);mix-blend-mode:overlay;background-size:260% 100%;animation:bfshine 4.5s ease-in-out infinite}
 @keyframes bfshine{0%,60%,100%{background-position:140% 0}75%{background-position:-40% 0}}
