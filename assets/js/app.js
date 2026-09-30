@@ -767,13 +767,32 @@ function initCtaDeck(){
 }
 
 /* ===== faq ===== */
+const FAQ_VISIBLE=5;
+const faqItemHtml=(f,i)=>`<div class="fq${i===0?' open':''}"><button class="fq-h" data-act="fq" aria-expanded="${i===0}"><span class="fq-num">${String(i+1).padStart(2,'0')}</span><span class="fq-q">${esc(f.question)}</span><i class="pm" aria-hidden="true"></i></button><div class="fq-a"><div><p>${esc(f.answer)}</p></div></div></div>`;
 function faqHtml(){
   const c=S().company,FAQ=state.faqs||[];
   if(!FAQ.length)return '';
   const wa=S().socials.whatsapp;
+  const visible=FAQ.slice(0,FAQ_VISIBLE);
   return `<section class="sec wrap faq-sec"><div class="faq-grid"><aside class="faq-aside" data-reveal><div class="faq-card grain"><span class="faq-mark" aria-hidden="true">?</span><h2>Questions buyers ask</h2><p>Can\u2019t find your answer? Write to us or call, and we will reply within one working day.</p>
   <div class="faq-ctas">${c.email?`<a class="btn btn-primary" href="mailto:${esc(c.email)}">${ico('mail')}Email us</a>`:''}${c.phone?`<a class="btn btn-ghost" href="${tel(c.phone)}">${ico('phone')}Call</a>`:''}${wa?`<a class="btn btn-ghost" href="${esc(wa)}" target="_blank" rel="noopener">${ico('wa')}WhatsApp</a>`:''}</div></div></aside>
-  <div class="faq-main" data-reveal><div class="fqs" id="fqs">${FAQ.map((f,i)=>`<div class="fq${i===0?' open':''}"><button class="fq-h" data-act="fq" aria-expanded="${i===0}"><span class="fq-num">${String(i+1).padStart(2,'0')}</span><span class="fq-q">${esc(f.question)}</span><i class="pm" aria-hidden="true"></i></button><div class="fq-a"><div><p>${esc(f.answer)}</p></div></div></div>`).join('')}</div></div></div></section>`;
+  <div class="faq-main" data-reveal><div class="fqs" id="fqs">${visible.map(faqItemHtml).join('')}</div></div></div></section>`;
+}
+function initFaq(){
+  const FAQ=state.faqs||[];
+  const wrap=$('#fqs');
+  if(!wrap||FAQ.length<=FAQ_VISIBLE)return null;
+  let start=0,stopped=false,t=null;
+  const onClick=e=>{if(e.target.closest('[data-act=fq]')){stopped=true;if(t){clearInterval(t);t=null}}};
+  wrap.addEventListener('click',onClick);
+  const tick=()=>{
+    start=(start+1)%FAQ.length;
+    const visible=Array.from({length:FAQ_VISIBLE},(_,k)=>FAQ[(start+k)%FAQ.length]);
+    wrap.classList.add('swap');
+    setTimeout(()=>{wrap.innerHTML=visible.map(faqItemHtml).join('');wrap.classList.remove('swap')},300);
+  };
+  if(!REDUCED)t=setInterval(tick,5000);
+  return()=>{if(t)clearInterval(t);wrap.removeEventListener('click',onClick)};
 }
 
 /* ===== journey: field to pallet ===== */
@@ -1100,7 +1119,7 @@ function route(first){
     setNav(page);window.scrollTo(0,0);
     reveal(main);initCounters(main);startPxRotate(main);
     if(page==='products')cleanup=initProducts();
-    if(page==='home'){const h=initHero(),p=initParallax(),q=initAcc(),u=initStage(),v=initLot(),w=initRoute(),x=initFx(),y=initOffers(),z=initCtaDeck();initWheel();cleanup=()=>{h&&h();p&&p();q&&q();u&&u();v&&v();w&&w();x&&x();y&&y();z&&z()}}
+    if(page==='home'){const h=initHero(),p=initParallax(),q=initAcc(),u=initStage(),v=initLot(),w=initRoute(),x=initFx(),y=initOffers(),z=initCtaDeck(),fq=initFaq();initWheel();cleanup=()=>{h&&h();p&&p();q&&q();u&&u();v&&v();w&&w();x&&x();y&&y();z&&z();fq&&fq()}}
     if(page==='agents')cleanup=initAgentsPage();
     if(page==='contact')cleanup=initOffers();
     if(page==='about')cleanup=initAbout();

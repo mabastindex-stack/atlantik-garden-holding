@@ -1146,21 +1146,23 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 @media (max-width:900px){.vgrid{grid-template-columns:minmax(0,1fr);max-width:460px;margin-inline:auto}.vc:nth-child(2){margin-top:0}}
 
 /* ===== faq: help card + smooth accordion ===== */
-.faq-sec{padding-block:clamp(40px,5vw,80px)}
-.faq-grid{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:clamp(24px,5vw,72px);align-items:start}
+.faq-sec{padding-block:clamp(34px,4.2vw,64px)}
+.faq-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,5vw,72px);align-items:start}
 .faq-aside{position:sticky;top:110px}
-.faq-card{position:relative;overflow:hidden;isolation:isolate;padding:clamp(28px,3.6vw,48px);border-radius:36px;color:#fff;background:linear-gradient(150deg,#123B32,#1D5E52 70%,#2C7C73);box-shadow:var(--shadow)}
+.faq-card{position:relative;overflow:hidden;isolation:isolate;padding:clamp(22px,2.8vw,36px);border-radius:32px;color:#fff;background:linear-gradient(150deg,#123B32,#1D5E52 70%,#2C7C73);box-shadow:var(--shadow)}
 .faq-card::after{content:'';position:absolute;z-index:-1;right:-90px;top:-90px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 66%);animation:float 14s ease-in-out infinite alternate}
-.faq-mark{position:absolute;z-index:-1;right:clamp(10px,3vw,34px);bottom:-60px;font-family:var(--f-display);font-weight:300;font-size:clamp(10rem,22vw,17rem);line-height:1;color:rgba(255,255,255,.09);animation:qbob 7s ease-in-out infinite alternate;font-variation-settings:"SOFT" 100,"opsz" 144}
+.faq-mark{position:absolute;z-index:-1;right:clamp(10px,3vw,34px);bottom:-60px;font-family:var(--f-display);font-weight:300;font-size:clamp(7rem,15vw,11rem);line-height:1;color:rgba(255,255,255,.09);animation:qbob 7s ease-in-out infinite alternate;font-variation-settings:"SOFT" 100,"opsz" 144}
 @keyframes qbob{to{transform:translateY(-16px) rotate(4deg)}}
-.faq-card h2{color:#fff;font-size:clamp(2rem,3.6vw,3rem);margin-bottom:14px}
-.faq-card p{color:rgba(255,255,255,.84);max-width:34ch;margin-bottom:24px}
+.faq-card h2{color:#fff;font-size:clamp(1.7rem,2.6vw,2.3rem);margin-bottom:10px}
+.faq-card p{color:rgba(255,255,255,.84);max-width:38ch;margin-bottom:18px}
 .faq-ctas{display:flex;flex-wrap:wrap;gap:10px}
 .faq-card .btn-primary{background:#fff;color:#0F3A2E;box-shadow:none}
 .faq-card .btn-ghost{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5);color:#fff}
 .faq-card .btn-ghost:hover{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1.5px #fff}
 .faq-main .chips{margin-bottom:20px}
-.fqs{display:grid;gap:14px}
+.fqs{display:grid;gap:14px;transition:opacity .3s var(--ease),transform .3s var(--ease)}
+.fqs.swap{opacity:0;transform:translateY(6px)}
+@media (prefers-reduced-motion:reduce){.fqs{transition:none}}
 .fq{position:relative;isolation:isolate;overflow:hidden;border-radius:26px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .45s,background-color .45s,transform .45s var(--ease)}
 .fq::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--fern),color-mix(in srgb,var(--fern) 40%,var(--citrus)));transform:scaleY(0);transform-origin:top;transition:transform .5s var(--ease)}
 .fq.hide{display:none}
