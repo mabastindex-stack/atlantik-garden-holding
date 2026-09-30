@@ -1114,7 +1114,9 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fz-tab.on .fz-prog{animation:fxp 6.5s linear forwards}
 @media (max-width:860px){
   .fz-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"title" "cont" "tabs"}
-  .fz-tabs{grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);overflow-x:auto;scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .fz-tabs{grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);overflow-x:auto;scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent 100%);mask-image:linear-gradient(90deg,#000 85%,transparent 100%)}
+  .fz-tabs.at-end{-webkit-mask-image:none;mask-image:none}
+  .fz-tab{scroll-snap-align:start}
   .fz-country{font-size:clamp(2.8rem,15vw,5rem)}
 }
 
