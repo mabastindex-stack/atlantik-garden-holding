@@ -1160,20 +1160,26 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .faq-card .btn-ghost{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5);color:#fff}
 .faq-card .btn-ghost:hover{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1.5px #fff}
 .faq-main .chips{margin-bottom:20px}
-.fqs{display:grid;gap:12px}
-.fq{border-radius:26px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .4s,background-color .4s}
+.fqs{display:grid;gap:14px}
+.fq{position:relative;isolation:isolate;overflow:hidden;border-radius:26px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .45s,background-color .45s,transform .45s var(--ease)}
+.fq::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--fern),color-mix(in srgb,var(--fern) 40%,var(--citrus)));transform:scaleY(0);transform-origin:top;transition:transform .5s var(--ease)}
 .fq.hide{display:none}
-.fq:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fern) 45%,transparent)}
+.fq:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fern) 45%,transparent);transform:translateY(-2px)}
 .fq.open{background:color-mix(in srgb,var(--fern) 8%,var(--surface));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--fern) 55%,transparent),0 26px 50px -34px color-mix(in srgb,var(--fern) 60%,transparent)}
-.fq-h{width:100%;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 26px;text-align:left;font-family:var(--f-display);font-size:1.28rem;font-weight:400;line-height:1.3}
+.fq.open::before{transform:scaleY(1)}
+.fq-h{width:100%;display:flex;align-items:center;gap:18px;padding:22px 26px;text-align:left;font-family:var(--f-display);font-size:1.28rem;font-weight:400;line-height:1.3}
+.fq-num{flex:none;font-family:var(--f-body);font-size:.78rem;font-weight:700;letter-spacing:.05em;color:var(--ink-3);opacity:.5;transition:color .4s,opacity .4s}
+.fq.open .fq-num{color:var(--fern);opacity:1}
+.fq-q{flex:1}
 .fq-h .pm{flex:none}
 .fq.open .pm{background:var(--btn);color:var(--on-btn);box-shadow:none}
 .fq.open .pm::after{transform:rotate(0)}
 .fq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s var(--ease)}
 .fq.open .fq-a{grid-template-rows:1fr}
 .fq-a>div{overflow:hidden}
-.fq-a p{padding:0 26px 24px;color:var(--ink-2);max-width:58ch;opacity:0;transform:translateY(-6px);transition:opacity .5s .1s,transform .6s var(--ease) .1s}
+.fq-a p{padding:0 26px 24px 68px;color:var(--ink-2);max-width:58ch;opacity:0;transform:translateY(-6px);transition:opacity .5s .1s,transform .6s var(--ease) .1s}
 .fq.open .fq-a p{opacity:1;transform:none}
+@media (max-width:560px){.fq-h{padding:18px 20px;gap:12px}.fq-a p{padding-left:20px}}
 @media (max-width:900px){.faq-grid{grid-template-columns:minmax(0,1fr)}.faq-aside{position:static}}
 
 /* ===== offers: voucher tickets ===== */

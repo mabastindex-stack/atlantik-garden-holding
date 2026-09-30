@@ -772,8 +772,8 @@ function faqHtml(){
   if(!FAQ.length)return '';
   const wa=S().socials.whatsapp;
   return `<section class="sec wrap faq-sec"><div class="faq-grid"><aside class="faq-aside" data-reveal><div class="faq-card grain"><span class="faq-mark" aria-hidden="true">?</span><h2>Questions buyers ask</h2><p>Can\u2019t find your answer? Write to us or call, and we will reply within one working day.</p>
-  <div class="faq-ctas"><a class="btn btn-primary" href="mailto:${esc(c.email)}">${ico('mail')}Email us</a><a class="btn btn-ghost" href="${tel(c.phone)}">${ico('phone')}Call</a>${wa?`<a class="btn btn-ghost" href="${esc(wa)}" target="_blank" rel="noopener">${ico('wa')}WhatsApp</a>`:''}</div></div></aside>
-  <div class="faq-main" data-reveal><div class="fqs" id="fqs">${FAQ.map((f,i)=>`<div class="fq${i===0?' open':''}"><button class="fq-h" data-act="fq" aria-expanded="${i===0}"><span>${esc(f.question)}</span><i class="pm" aria-hidden="true"></i></button><div class="fq-a"><div><p>${esc(f.answer)}</p></div></div></div>`).join('')}</div></div></div></section>`;
+  <div class="faq-ctas">${c.email?`<a class="btn btn-primary" href="mailto:${esc(c.email)}">${ico('mail')}Email us</a>`:''}${c.phone?`<a class="btn btn-ghost" href="${tel(c.phone)}">${ico('phone')}Call</a>`:''}${wa?`<a class="btn btn-ghost" href="${esc(wa)}" target="_blank" rel="noopener">${ico('wa')}WhatsApp</a>`:''}</div></div></aside>
+  <div class="faq-main" data-reveal><div class="fqs" id="fqs">${FAQ.map((f,i)=>`<div class="fq${i===0?' open':''}"><button class="fq-h" data-act="fq" aria-expanded="${i===0}"><span class="fq-num">${String(i+1).padStart(2,'0')}</span><span class="fq-q">${esc(f.question)}</span><i class="pm" aria-hidden="true"></i></button><div class="fq-a"><div><p>${esc(f.answer)}</p></div></div></div>`).join('')}</div></div></div></section>`;
 }
 
 /* ===== journey: field to pallet ===== */
