@@ -649,15 +649,8 @@ function initFx(){
   const set=k=>{i=k;bg.forEach((p,j)=>p.classList.toggle('on',j===k));cs.forEach((p,j)=>p.classList.toggle('on',j===k));ts.forEach((r,j)=>{r.classList.remove('on');if(j===k){void r.offsetWidth;r.classList.add('on')}})};
   const start=()=>{if(t)clearInterval(t);if(!REDUCED)t=setInterval(()=>set((i+1)%n),6500)};
   ts.forEach((r,k)=>{r.addEventListener('mouseenter',()=>{set(k);start()});r.addEventListener('focus',()=>{set(k);start()})});
-  const tabsEl=$('.fz-tabs',el);
-  let onScroll=null;
-  if(tabsEl){
-    onScroll=()=>tabsEl.classList.toggle('at-end',tabsEl.scrollLeft+tabsEl.clientWidth>=tabsEl.scrollWidth-4);
-    onScroll();
-    tabsEl.addEventListener('scroll',onScroll,{passive:true});
-  }
   set(0);start();
-  return()=>{if(t)clearInterval(t);if(tabsEl&&onScroll)tabsEl.removeEventListener('scroll',onScroll)};
+  return()=>{if(t)clearInterval(t)};
 }
 
 /* ===== values ===== */

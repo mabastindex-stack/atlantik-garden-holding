@@ -1102,7 +1102,7 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fz-c.on>*:nth-child(5){animation-delay:.28s}
 .fz-c.on>*:nth-child(6){animation-delay:.35s}
 .fz-tabs{grid-area:tabs;display:grid;gap:12px;align-self:stretch;align-content:center}
-.fz-tab{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:18px 20px;border-radius:24px;background:rgba(255,255,255,.08);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);color:#fff;transition:background-color .4s,box-shadow .4s,padding .5s var(--ease)}
+.fz-tab{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:18px 20px;border-radius:24px;background:rgba(255,255,255,.08);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);color:#fff;transition:background-color .4s,box-shadow .4s,padding .5s var(--ease);height:100%;box-sizing:border-box}
 .fz-tab .flag{width:52px;height:35px;border-radius:6px}
 .fz-tab b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.4rem;line-height:1.15}
 .fz-tab small{display:block;color:rgba(255,255,255,.7);font-size:.84rem}
@@ -1114,10 +1114,14 @@ textarea.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;f
 .fz-tab.on .fz-prog{animation:fxp 6.5s linear forwards}
 @media (max-width:860px){
   .fz-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"title" "cont" "tabs"}
-  .fz-tabs{grid-auto-flow:column;grid-auto-columns:minmax(210px,1fr);overflow-x:auto;scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent 100%);mask-image:linear-gradient(90deg,#000 85%,transparent 100%)}
-  .fz-tabs.at-end{-webkit-mask-image:none;mask-image:none}
-  .fz-tab{scroll-snap-align:start}
+  .fz-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
   .fz-country{font-size:clamp(2.8rem,15vw,5rem)}
+}
+@media (max-width:540px){
+  .fz-tab{grid-template-columns:1fr;justify-items:start;gap:8px;padding:16px}
+  .fz-tab.on{padding-left:16px}
+  .fz-tab b{font-size:1.15rem}
+  .fz-tab em{position:absolute;top:14px;right:14px}
 }
 
 /* ===== values: arch promise cards ===== */
